@@ -25,12 +25,13 @@ module NagiosRestApi
       @cookiejar = PStore.new('groundworks-cookie.pstore')
       @login_home = '/monitor/rpc.php'
       @groundworks_cookie = nil
-      if @base_url.include? 'gw01.unbelievable-machine.net'
+      if options[:groundworks] == true
         groundworks_auth
       end
     end
   
     def groundworks_auth
+      puts "GROUNDWORKS AUTH!!!!"
       response, data = @http.post(@login_home,'<request><context name="framework"><message type="object"><variable name="identifier" type="string">18998801810439849321</variable><variable name="setvalue" type="cdata"><![CDATA[' + @username +']]></variable></message><message type="object"><variable name="identifier" type="string">7916059441205798542</variable><variable name="setvalue" type="cdata"><![CDATA[' + @password + ' ]]></variable></message><message type="object"><variable name="identifier" type="string">13069634310516978493</variable><variable name="method" type="string">Invoke</variable><variable name="action" type="string">click</variable></message></context></request>',{'Content-Type' => 'application/x-www-form-urlencoded'})
       cookie = set_cookie [response['set-cookie'], @auth_token].join(';')
     end
@@ -80,6 +81,7 @@ module NagiosRestApi
       request = Net::HTTP::Post.new(path, req_headers)
       request.basic_auth @username, @password if @username and @password
       request.set_form_data(params)
+      #params.each { |k,v| puts "#{k} ===> #{v}"} 
       #request.each { |k,v| puts "#{k} => #{v}"}
       begin
         response = @http.start do |http|          

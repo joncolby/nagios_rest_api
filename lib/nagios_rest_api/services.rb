@@ -31,11 +31,56 @@ module NagiosRestApi
     def to_h
       info.marshal_dump
     end
+    
+    def cancel_downtime
+      effective_downtimes=[]
+      response = api_client.api.get('/nagios/cgi-bin/extinfo.cgi', { type: '6' })
+      response.body.each_line do |line|
+        line = CGI::unescapeHTML line
+        line = line.gsub(/&nbsp;/,'') 
+        #puts @name       
+        if line.match(/host=#{@host}/)
+          re = %r{service=#{Regexp.escape @name}(.*)>(.*)</td>(.*)</td>}i
+          m = line.match re
+          id = m[2] if m
+          
+          effective_downtimes << id  if (id and Integer(id)) 
+        end
+      end
+      response_success = true
+      effective_downtimes.each do |down_id|
+        response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { cmd_typ: '79', cmd_mod: '2', down_id: down_id, btnSubmit: 'Commit' })
+        response_success false if !response.is_a? Net::HTTPSuccess
+      end
+    return OpenStruct.new({message: "Downtime for service \'#{@name}\' on #{@host} has been removed"}) if response_success
+    return OpenStruct.new({message: "Problem encountered removing downtime for service \'#{@name}\' on #{@host}"}) if !response_success
+    end
 
-    def downtime(duration, start_time, end_time, comment="downtime set by nagios api")
+    def downtime(duration_minutes=60, comment="downtime set by nagios api")
+      t = Time.new
+      localtime = t.localtime
+      duration = localtime + duration_minutes * 60
+      start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
+      end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+ 
+      service = CGI::unescape @name      
+      response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, hours: '2', minutes: '0', trigger: '0', cmd_typ: '56', cmd_mod: '2', service: service, com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', btnSubmit: 'Commit' })
+      return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Problem setting downtime for service #{service} on #{@host}", code: response.code }) 
     end   
     
-    def acknowledge
+    def acknowledge(comment="acknowledged by nagios api", sticky=true)
+      service = CGI::unescape @name
+      response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, cmd_typ: '34', cmd_mod: '2', service: service, sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })
+      return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been acknowledged", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Problem acknowledging #{service} on #{@host}", code: response.code })
+    end
+    
+    def remove_acknowledgement
+      service = CGI::unescape @name
+      response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, com_author: 'nagios rest api', cmd_typ: '52', cmd_mod: '2', service: service, btnSubmit: 'Commit' })
+      return OpenStruct.new({message: "Host #{@name} acknowledgement has been removed", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Problem removing acknowledgement host #{@name}", code: response.code })
     end
     
     def enable_notifications
@@ -55,7 +100,7 @@ module NagiosRestApi
       message = cmd_typ == 23 ? "DISABLED" : "ENABLED"
       service = CGI::unescape @name
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, cmd_typ: cmd_typ, cmd_mod: '2', service: service, btnSubmit: 'Commit' })
-      return OpenStruct.new({message: "Notifications for #{service} on #{@host} are now #{message}", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Notifications for service \'#{service}\' on #{@host} are now #{message}", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting notifications to #{message} for #{service} on #{@host}", code: response.code })
     end
     
