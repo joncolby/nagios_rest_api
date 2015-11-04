@@ -1,10 +1,6 @@
-require 'interface'
-
 module NagiosRestApi
   class Client
     
-    #AUTH_TOKEN = 'nagios_auth_tkt=ZWY0MGZmMmFiOTAwNDhlMzhmYzNkYWE5NDUzZmZjZjA1NjI5ZWRkOG5hZ2lvc2FkbWluIQ=='
-
     def initialize(base_url, options = {})
       @base_url = base_url
       @auth_token = options[:auth_token]

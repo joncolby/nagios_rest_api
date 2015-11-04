@@ -1,0 +1,5 @@
+---
+username: NAGIOS_USER
+password: NAGIOS_PASSWORD
+nagios_url: "http(s)://nagioshost-url"  
+use_groundworks_auth: false

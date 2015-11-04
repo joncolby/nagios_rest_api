@@ -1,4 +1,3 @@
-require_relative 'services'
 require 'cgi'
 require 'ostruct'
 
@@ -12,21 +11,22 @@ module NagiosRestApi
     end
     
     def find(hostname)
-      all.select! { |h| h.name.upcase == hostname.upcase }.first
+      #all.select { |h| h.name.upcase == hostname.upcase }.first
+      all.select { |h| h.name.upcase =~ /^#{hostname.upcase}/i }
     end
-
-#    def find(hostname)
-#      result = api_client.api.get("/nagios/cgi-bin/status.cgi", { navbarsearch: '1', host: hostname }).body
-#      found_hosts = []
-#      result.each_line do |line|
-#        re = %r{extinfo\.cgi\?type\=2\&host\=(.*?)\&}
-#        match = line.match re
-#        next if match.to_s.empty?
-#        found_hosts << match[1].strip
-#      end
-#      host = found_hosts.uniq.first
-#      Host.new(host, { api_client: @api_client })
-#    end 
+    
+    # navbarsearch is crappy and unreliable
+    #def find(hostname)
+    #  result = api_client.api.get('/nagios/cgi-bin/status.cgi', { navbarsearch: '1', host: hostname })
+    #  result.body.each_line do |line|
+    #    re = %r{a href='extinfo.cgi\?type=1&host=(.*?)'}i
+    #    puts line
+    #    next unless line.match re        
+    #   host = $1
+    #    @hosts << Host.new(host, { api_client: @api_client }) unless hosts.any? { |h| h.name == hostname }
+    #  end
+    # @hosts
+    #end
     
     def all
       response = api_client.api.get("/nagios/cgi-bin/status.cgi", { hostgroup: 'all', style: 'hostdetail' })
@@ -35,9 +35,9 @@ module NagiosRestApi
         match = line.match re
         next if match.to_s.empty?
         hostname = match[1].strip.sub(/\#.*$/,'')       
-      @hosts << Host.new(hostname, { api_client: @api_client }) unless hosts.any? { |h| h.name == hostname }    
+      @hosts << Host.new(hostname, { api_client: @api_client }) unless hosts.any? { |h| h.name == hostname }
       end
-      @hosts.uniq
+      @hosts
     end  
    end  
   
@@ -61,7 +61,7 @@ module NagiosRestApi
         match = line.match re
         next if match.to_s.empty?
         service_name = match[1].strip.sub(/\#.*$/,'')
-        service_names << Service.new(service_name,self, { api_client: @api_client }) unless service_names.any? { |s| s.to_s == service_name }    
+        service_names << Service.new(CGI::unescape(service_name),self, { api_client: @api_client }) unless service_names.any? { |s| s.to_s == service_name }    
       end
       return service_names
     end

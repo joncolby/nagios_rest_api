@@ -23,7 +23,6 @@ module NagiosRestApi
       @http.use_ssl = (uri.scheme == 'https')
       @http.verify_mode = OpenSSL::SSL::VERIFY_NONE if (uri.scheme == 'https')
       @cookiejar = PStore.new('groundworks-cookie.pstore')
-      @login_home = '/monitor/rpc.php'
       @groundworks_cookie = nil
       if options[:groundworks] == true
         groundworks_auth
@@ -31,11 +30,66 @@ module NagiosRestApi
     end
   
     def groundworks_auth
-      puts "GROUNDWORKS AUTH!!!!"
-      response, data = @http.post(@login_home,'<request><context name="framework"><message type="object"><variable name="identifier" type="string">18998801810439849321</variable><variable name="setvalue" type="cdata"><![CDATA[' + @username +']]></variable></message><message type="object"><variable name="identifier" type="string">7916059441205798542</variable><variable name="setvalue" type="cdata"><![CDATA[' + @password + ' ]]></variable></message><message type="object"><variable name="identifier" type="string">13069634310516978493</variable><variable name="method" type="string">Invoke</variable><variable name="action" type="string">click</variable></message></context></request>',{'Content-Type' => 'application/x-www-form-urlencoded'})
-      cookie = set_cookie [response['set-cookie'], @auth_token].join(';')
-    end
-    
+      req_headers = {}
+      params = {}
+      req_headers['User-Agent'] = @user_agent if @user_agent  
+      username_id = nil
+      password_id = nil
+      login_id = nil
+      set_cookie nil
+      #cookie = get_cookie
+      # call first to establish php session cookie    
+      #if (cookie.empty?)
+      #  puts "EMPTY!"
+      initial_response = get('/monitor/index.php', req_headers)
+      set_cookie initial_response['set-cookie'] if initial_response['set-cookie']
+      # second call time to set cookie
+      cookie = get_cookie
+      #else
+      #  puts cookie
+      #end
+      req_headers['Cookie'] = cookie if cookie    
+      response = get('/monitor/index.php', req_headers)  
+
+      response.body.each_line do |line|
+              line = CGI::unescapeHTML line
+              line = line.gsub(/&nbsp;/,'') 
+              case
+                when line.match(/input type="text" id=/) 
+                  re = %r{name="(.*?)" }
+                  match = line.match re
+                  username_id = match[1].strip
+                  #puts "username_id: -#{username_id}-"
+                when line.match(/input type="password" id=/)
+                  re = %r{name="(.*?)" }
+                  match = line.match re
+                  password_id = match[1].strip
+                  #puts "password_id: -#{password_id}-"
+                when line.match(/input type="button" value="Login" id=/)
+                  re = %r{id="(.*?)"}
+                  match = line.match re
+                  login_id = match[1].strip
+                  #puts "login_id: -#{login_id}-"
+              end
+      end
+
+      params['request'] = '<request><context name="framework"><message type="object"><variable name="identifier" type="string">' + username_id + '</variable><variable name="setvalue" type="cdata"><![CDATA[' + @username +']]></variable></message><message type="object"><variable name="identifier" type="string">' + password_id + '</variable><variable name="setvalue" type="cdata"><![CDATA[' + @password + ']]></variable></message><message type="object"><variable name="identifier" type="string">' + login_id + '</variable><variable name="method" type="string">Invoke</variable><variable name="action" type="string">click</variable></message></context></request>'
+      cookie = get_cookie
+      req_headers['Cookie'] = cookie if cookie
+      request = Net::HTTP::Post.new('/monitor/rpc.php', req_headers)
+      request.basic_auth @username, @password if @username and @password      
+      request.set_form_data(params)  
+      
+      begin
+        response = @http.start do |http|          
+              http.request(request)
+        end  
+      rescue Net::OpenTimeout => e
+          raise "timeout connecting to nagios at #{@base_url}"
+      end
+
+      cookie = set_cookie [response['set-cookie'], get_cookie].join(';')
+  end
   
   def get(path, params={}, limit=10)  
       raise ArgumentError, 'too many HTTP redirects' if limit == 0
@@ -64,15 +118,15 @@ module NagiosRestApi
         when Net::HTTPRedirection then
           # TODO
           location = response['location']          
-          warn "redirected to #{location}"
+          #warn "redirected to #{location}"
         else
-          raise "unexpected response: #{response.code} #{response.message}"
+          #raise "unexpected response: #{response.code} #{response.message}"
           response
         end
       response
-    end
+   end
     
-    def post(path, params={})
+   def post(path, params={})
       req_headers = {}
       req_headers['User-Agent'] = @user_agent if @user_agent
       cookie = get_cookie
@@ -92,35 +146,35 @@ module NagiosRestApi
       end
               
       response
-    end
+  end
     
-    private  
-    def set_cookie(cookie)
-      @cookiejar.transaction do
-        @cookiejar[:groundworks] = cookie
-      end     
+  private  
+  def set_cookie(cookie)
+    @cookiejar.transaction do
+      @cookiejar[:groundworks] = cookie
+    end     
+  end
+  
+  def get_cookie
+    @cookiejar.transaction do
+           groundworks_cookie = @cookiejar[:groundworks]
     end
-    
-    def get_cookie
-      @cookiejar.transaction do
-             groundworks_cookie = @cookiejar[:groundworks]
-      end
-    end
-    
-    def encode_uri(uri)
-      URI.encode_www_form(uri)
-    end
-    
-    def create_path(path, params)
-      query = []
-      params.each { |k,v| query << "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"  }
-      [path, query.join('&')].join('?')
-    end
-    
-    def encode_path_params(path, params)
-      encoded = URI.encode_www_form(params)
-      [path, encoded].join('?')
-    end
+  end
+  
+  def encode_uri(uri)
+    URI.encode_www_form(uri)
+  end
+  
+  def create_path(path, params)
+    query = []
+    params.each { |k,v| query << "#{URI.escape(k.to_s)}=#{URI.escape(v.to_s)}"  }
+    [path, query.join('&')].join('?')
+  end
+  
+  def encode_path_params(path, params)
+    encoded = URI.encode_www_form(params)
+    [path, encoded].join('?')
+  end
     
   end
 end

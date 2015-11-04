@@ -27,7 +27,14 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_runtime_dependency "sinatra"
+  spec.add_runtime_dependency "haml", "~> 4"
+  spec.add_runtime_dependency "warden"
+  spec.add_runtime_dependency "sinatra-contrib"
+  spec.add_runtime_dependency 'rack-flash3'
+
   spec.add_development_dependency "bundler", "~> 1.10"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest"
+  spec.add_development_dependency "shotgun"
 end
