@@ -47,7 +47,33 @@ $cp /usr/lib/ruby/gems/1.8/gems/nagios_rest_api-0.0.2/lib/nagios_rest_api.yaml ~
 
 #### From the cloned repo directory
 
-TODO
+**Install rvm**.  It's easy and will make your life easier!!
+
+[instructions on the rvm site](<https://rvm.io/>) 
+
+* clone this git repo.
+*. copy example config to your home directory (or /etc/)
+
+```
+$ cp nagios_rest_api/nagios_rest_api.yaml.example ~/nagios_rest_api.yaml
+```
+
+* run bundler to install dependencies
+
+```
+$ bundle
+```
+* launch!
+
+```
+$ shotgun
+== Shotgun/WEBrick on http://127.0.0.1:9393/
+[2015-11-06 19:17:55] INFO  WEBrick 1.3.1
+[2015-11-06 19:17:55] INFO  ruby 2.2.4 (2015-10-06) [x86_64-darwin15]
+[2015-11-06 19:17:55] INFO  WEBrick::HTTPServer#start: pid=53720 port=9393
+```
+
+
 
 #### Standalone executable (when installed as gem)
 
