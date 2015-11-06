@@ -68,7 +68,7 @@ require 'sinatra'
 set :environment, ENV['RACK_ENV'].to_sym
 disable :run, :reload
 require 'nagios_rest_api'
-run VarnishRestApi
+run RestApi
 ```
 
 Start server with the rackup command:
@@ -76,7 +76,6 @@ Start server with the rackup command:
 ```
 $ rackup -p10001 --host 0.0.0.0 config.ru
 using configuration file: /etc/nagios_rest_api.yaml
-varnishadm command line: /usr/bin/varnishadm -T localhost:6082 -S /home/vagrant/secret
 Thin web server (v1.6.3 codename Protein Powder)
 Maximum connections set to 1024
 Listening on 0.0.0.0:10001, CTRL+C to stop
@@ -103,7 +102,7 @@ $passenger-install-nginx-module
 create the following directory structure for the application:
 
 ```
-/var/www/varnishapi
+/var/www/nagiosapi
   |
   +-- config.ru <-- see rackup example above for contents
   |
@@ -130,7 +129,7 @@ server {
         listen       80;
         server_name  localhost;
 
-        root /var/www/varnishapi/public;
+        root /var/www/nagiosapi/public;
         passenger_enabled on;        
 ...        
 ```
@@ -146,10 +145,10 @@ PID    VMSize    Private  Name
 14717  351.3 MB  0.9 MB   PassengerAgent watchdog
 14720  628.9 MB  1.4 MB   PassengerAgent server
 14725  222.9 MB  0.8 MB   PassengerAgent logger
-14741  285.7 MB  2.2 MB   Passenger AppPreloader: /var/www/varnishapi
-14761  354.4 MB  12.2 MB  Passenger RubyApp: /var/www/varnishapi/public
-14768  354.5 MB  9.8 MB   Passenger RubyApp: /var/www/varnishapi/public
-14775  352.6 MB  2.3 MB   Passenger RubyApp: /var/www/varnishapi/public
+14741  285.7 MB  2.2 MB   Passenger AppPreloader: /var/www/nagiosapi
+14761  354.4 MB  12.2 MB  Passenger RubyApp: /var/www/nagiosapi/public
+14768  354.5 MB  9.8 MB   Passenger RubyApp: /var/www/nagiosapi/public
+14775  352.6 MB  2.3 MB   Passenger RubyApp: /var/www/nagiosapi/public
 ...
 ```
 
@@ -160,11 +159,6 @@ The usage documentation is available at the root context:
 http://your-ip-address:10001/
 ```
 
-### WORD OF WARNING!
-
-This small web application is meant to run in an controlled environment and offers no encryption or authentication.  Anyone who can access the Rest API can potentially remove all of your varnish backends or overload your vanish process with calls to the "varnishadm" command. Use at your own risk!
-
-
 
 ### RESTful API Actions
  
@@ -172,11 +166,13 @@ This small web application is meant to run in an controlled environment and offe
 
 | Method  | Url | Description | Remarks | 
 |------|------|------|------|
-| GET | /list   | list all backends | read-only |
-| GET | /list/*backend*   | list backends matching pattern *backend* | read-only |
-| GET | /ping | ping varnish process  | read-only | 
-| GET | /banner | display varnish banner with version information | read-only |
-| GET | /status | display status of varnish process | read-only | 
-| GET | /ban | ban all objects immediately | effectively purges objects. See varnish [documentation](<https://www.varnish-cache.org/docs/3.0/tutorial/purging.html>) | 
-| GET | /*backend*/in | sets backend health to "auto", allowing probe to decide if backend is healthy | use partial or complete backend name as it appears in VCL. The Rest API will not process request if more than one backend is found matching for the pattern |  
-| GET | /*backend*/out | sets backend health to "sick" | use partial or complete backend name as it appears in VCL. The Rest API will not process request if more than one backend is found matching for the pattern|  
+| GET | /hosts   | show all hosts | read-only |
+| GET | /hosts/*hostname*   | show info for hostname | read-only |
+| GET | /hosts/find/*hostpattern* | find hosts matching a simple pattern  | read-only | 
+| GET | /hosts/*hostname*/downtime[?service=*servicename*] | set downtime | |
+| GET | /hosts/*hostname*/nodowntime[?service=*servicename*] | unset downtime | |
+| GET | /hosts/*hostname*/ack[?service=*servicename*] | set acknowledgement | |
+| GET | /hosts/*hostname*/unack[?service=*servicename*] | unset acknowledgement | |
+| GET | /hosts/*hostname*/enable[?service=*servicename*] | enable notifications | |
+| GET | /hosts/*hostname*/disable[?service=*servicename*] | disable notifications | |
+

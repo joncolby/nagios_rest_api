@@ -1,0 +1,18 @@
+<html>
+<body>
+<h2>nagios rest api commands</h2>
+<table border=1>
+<tr><td>method</td><td>command</td><td>description</td><td>comment</td></tr>
+
+<tr><td>GET</td> <td>/hosts</td><td>show all hosts</td><td>read-only</td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b></td><td>show info for hostname</td><td>read-only</td></tr>
+<tr><td>GET</td> <td>/hosts/find/<b>hostpattern</b></td><td>find hosts matching a simple pattern</td><td>read-only</td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b>/downtime[?service=<b>servicename</b>]</td><td>set downtime</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b>/ack[?service=<b>servicename</b>]</td><td>set acknowledgement</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b>/unack[?service=<b>servicename</b>]</td><td>unset acknowledgement</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b>/enable[?service=<b>servicename</b>]</td><td>enable notifications</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b>/disable[?service=<b>servicename</b>]</td><td>disable notifications</td><td></td></tr>
+
+</table>
+</body>
+<html>

@@ -64,6 +64,9 @@ class RestApi < Sinatra::Application
      set :sessions, false    
      set :show_exceptions, true 
      set :client, @client
+     set :root, File.dirname(__FILE__)
+     set :bind, @config[:bind_ip]
+     set :port, @config[:port]
   end 
 
     not_found do
@@ -72,6 +75,14 @@ class RestApi < Sinatra::Application
     
     before do
       cache_control :private, :no_cache, :no_store, :must_revalidate         
+    end
+    
+    ['/', '/help', '/usage'].each do |route|
+    get route do
+      content_type :html
+      puts "YO"
+      send_file File.expand_path('help.html', settings.public_folder)
+    end
     end
       
     # find hosts with pattern

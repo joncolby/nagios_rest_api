@@ -1,5 +1,8 @@
 ---
-username: NAGIOS_USER
-password: NAGIOS_PASSWORD
-nagios_url: "http(s)://nagioshost-url"  
-use_groundworks_auth: false
+# EXAMPLE CONFIG FILE
+username: USER
+password: PASSWORD
+nagios_url: "https://gw01.unbelievable-machine.net"
+use_groundworks_auth: true
+date_format: eu
+#date_format: us
