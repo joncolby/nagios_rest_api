@@ -37,13 +37,13 @@ module NagiosRestApi
       response = api_client.api.get('/nagios/cgi-bin/extinfo.cgi', { type: '6' })
       response.body.each_line do |line|
         line = CGI::unescapeHTML line
-        line = line.gsub(/&nbsp;/,'') 
-        #puts @name       
+        line = line.gsub(/&nbsp;/,'')
+      
         if line.match(/host=#{@host}/)
-          re = %r{service=#{Regexp.escape @name}(.*)>(.*)</td>(.*)</td>}i
+          s_name_escaped = @name.gsub(/\s/, '\\\\+')
+          re = %r{service=#{s_name_escaped}(.*)>(.*)</td>(.*)</td>}i  
           m = line.match re
-          id = m[2] if m
-          
+          id = m[2] if m  
           effective_downtimes << id  if (id and Integer(id)) 
         end
       end
@@ -57,12 +57,19 @@ module NagiosRestApi
     end
 
     def downtime(duration_minutes=60, comment="downtime set by nagios api")
+      duration_minutes = 60 if duration_minutes == 0
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
-      start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
-      end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
- 
+      
+      start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
+      end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
+      
+      if @api_client.date_format == 'us'
+        start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
+        end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      end
+
       service = CGI::unescape @name      
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, hours: '2', minutes: '0', trigger: '0', cmd_typ: '56', cmd_mod: '2', service: service, com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess

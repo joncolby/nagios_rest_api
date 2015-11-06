@@ -53,6 +53,14 @@ module NagiosRestApi
       @acknowledged = nil
     end
     
+    def has_service?(service_name)
+      !service_names.select { |s| s.upcase == service_name.upcase }.empty?
+    end
+    
+    def service_names
+      services.collect { |s| s.name }
+    end
+    
     def services
       service_names = []
       response = api_client.api.get('/nagios/cgi-bin/status.cgi', { host: @name })
@@ -61,14 +69,13 @@ module NagiosRestApi
         match = line.match re
         next if match.to_s.empty?
         service_name = match[1].strip.sub(/\#.*$/,'')
-        service_names << Service.new(CGI::unescape(service_name),self, { api_client: @api_client }) unless service_names.any? { |s| s.to_s == service_name }    
+        service_names << Service.new(CGI::unescape(service_name),self, { api_client: @api_client }) unless service_names.any? { |s| s.to_s == CGI::unescape(service_name) }    
       end
       return service_names
     end
     
-    def find_service(service_name)
-      found = services.select { |s| CGI::unescape(s.name).match %r{^#{CGI::unescape(service_name).strip}}i }
-      return found
+    def get_service(service_name)
+      services.select { |s| CGI::unescape(s.name).match %r{^#{CGI::unescape(service_name).strip}}i }.first
     end
         
     def to_s
@@ -131,13 +138,21 @@ module NagiosRestApi
     
 
     def downtime(duration_minutes=60, comment="downtime set by nagios api")
+      duration_minutes = 60 if duration_minutes == 0
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
-      start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
-      end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      
+      start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
+      end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
+      
+      if @api_client.date_format == 'us'
+        start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
+        end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      end
      
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, childoptions: '0', cmd_mod: '2', cmd_typ: '55', com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', hours: '2', minutes: '0', trigger: '0', btnSubmit: 'Commit' })
+      puts response.body
       return OpenStruct.new({message: "Host #{@name} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for host #{@name}", code: response.code }) 
     end 
@@ -161,8 +176,8 @@ module NagiosRestApi
         response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { cmd_typ: '78', cmd_mod: '2', down_id: down_id, btnSubmit: 'Commit' })
         response_success false if !response.is_a? Net::HTTPSuccess
       end
-    return OpenStruct.new({message: "Downtime for service \'#{@name}\' on #{@host} has been removed"}) if response_success
-    return OpenStruct.new({message: "Problem encountered removing downtime for service \'#{@name}\' on #{@host}"}) if !response_success
+    return OpenStruct.new({message: "Downtime for #{@host} has been removed"}) if response_success
+    return OpenStruct.new({message: "Problem encountered removing downtime #{@host}"}) if !response_success
     end
     
     def enable_notifications

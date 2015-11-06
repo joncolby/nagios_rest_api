@@ -8,14 +8,14 @@ module NagiosRestApi
   
   class Interface
     
-    attr_accessor :base_url, :username, :password
+    attr_accessor :base_url, :username, :password, :date_format
 
     def initialize(base_url,options={})
       @base_url = base_url      
       @username = options[:username]
       @password = options[:password]
-      @auth_token = options[:auth_token]
       @user_agent = options[:user_agent]
+      @date_format = options[:date_format]        
       uri = URI.parse(base_url)
       @http = Net::HTTP.new(uri.host, uri.port)
       @http.open_timeout = 10
