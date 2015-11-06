@@ -93,7 +93,7 @@ $gem install passenger
 ```
 
 ```
-$passenger-install-apache-module
+$passenger-install-apache2-module
 ```
 example conf:
 
