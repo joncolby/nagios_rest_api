@@ -85,6 +85,25 @@ Listening on 0.0.0.0:10001, CTRL+C to stop
 
 Install nginx with passenger support.  Excellent documentation available here: [Passenger documentation](<https://www.phusionpassenger.com/documentation/Users%20guide%20Nginx.html#bundler_support>) and [nginx centos how-to](<https://www.digitalocean.com/community/tutorials/how-to-compile-nginx-from-source-on-a-centos-6-4-x64-vps>)
 
+
+##### Apache Conscise How-to 
+
+```
+$gem install passenger
+```
+
+```
+$passenger-install-apache-module
+```
+example conf:
+
+```
+   LoadModule passenger_module /home/jonathan.colby/.rvm/gems/ruby-2.2.1@nagios_rest_api/gems/passenger-5.0.21/buildout/apache2/mod_passenger.so
+   <IfModule mod_passenger.c>
+     PassengerRoot /home/jonathan.colby/.rvm/gems/ruby-2.2.1@nagios_rest_api/gems/passenger-5.0.21
+     PassengerDefaultRuby /home/jonathan.colby/.rvm/gems/ruby-2.2.1@nagios_rest_api/wrappers/ruby
+   </IfModule>
+```
 ##### Concise How-to (nginx yum installation method)
 
 Install passenger gem:
