@@ -1,0 +1,9 @@
+---
+# EXAMPLE CONFIG FILE
+username: USER
+password: PASSWORD
+nagios_url: "https://gw01.unbelievable-machine.net"
+use_groundworks_auth: true
+date_format: eu # or us
+slack_token: HkjhkjHYGVJHKJH # the token expected from slack integration
+client_token:  LJkljkloJKHKHK  # the token for client programs, basic auth over ssl is also recommended

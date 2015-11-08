@@ -2,17 +2,46 @@
 <body>
 <h2>nagios rest api commands</h2>
 <table border=1>
-<tr><td>method</td><td>command</td><td>description</td><td>comment</td></tr>
+<tr><td>method</td><td>command</td><td>description</td><td>parameters (* indicates required)</td></tr>
 
-<tr><td>GET</td> <td>/hosts</td><td>show all hosts</td><td>read-only</td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b></td><td>show info for hostname</td><td>read-only</td></tr>
-<tr><td>GET</td> <td>/hosts/find/<b>hostpattern</b></td><td>find hosts matching a simple pattern</td><td>read-only</td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b>/downtime[?service=<b>servicename</b>]</td><td>set downtime</td><td></td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b>/ack[?service=<b>servicename</b>]</td><td>set acknowledgement</td><td></td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b>/unack[?service=<b>servicename</b>]</td><td>unset acknowledgement</td><td>-</td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b>/enable[?service=<b>servicename</b>]</td><td>enable notifications</td><td>-</td></tr>
-<tr><td>GET</td> <td>/hosts/<b>hostname</b>/disable[?service=<b>servicename</b>]</td><td>disable notifications</td><td>-</td></tr>
-
+<tr><td>GET</td> <td>/hosts</td><td>show all hosts</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/<b>hostname</b></td><td>show info for hostname</td><td></td></tr>
+<tr><td>GET</td> <td>/hosts/find/<b>hostpattern</b></td><td>find hosts matching a simple pattern</td><td></td></tr>
+<tr><td>PUT</td> <td>/hosts/<b>hostname</b>/downtime</td><td>set downtime</td><td>service=(service name), duration=(minutes, default: 60)</td></tr>
+<tr><td>PUT</td> <td>/hosts/<b>hostname</b>/ack</td><td>set acknowledgement</td><td>service=(service name)</td></tr>
+<tr><td>PUT</td> <td>/hosts/<b>hostname</b>/unack</td><td>unset acknowledgement</td><td>service=(service name)</td></tr>
+<tr><td>PUT</td> <td>/hosts/<b>hostname</b>/enable</td><td>enable notifications</td><td>service=(service name)</td></tr>
+<tr><td>PUT</td> <td>/hosts/<b>hostname</b>/disable</td><td>disable notifications</td><td>service=(service name)</td></tr>
+<tr><td>POST</td> <td>/slack</td><td>disable notifications</td><td>*hostname, *action, *token, service, duration</td></tr>
 </table>
+
+<h2>Slack commands</h2>
+<table border="1">
+<tr>
+<td>/nagios hosts</td>
+<td>show all host names</td>
+</tr>
+
+<tr>
+<td>/nagios find hostpattern</td>
+<td>show hosts matching pattern</td>
+</tr>
+
+<tr>
+<td>/nagios host hostname</td>
+<td>show detailed status for host</td>
+</tr>
+
+<tr>
+<td>/nagios host hostname downtime minutes</td>
+<td>set downtime on host for x minutes</td>
+</tr>
+
+<tr>
+<td>/nagios host hostname ack</td>
+<td>acknowledge host</td>
+</tr>
+</table>
+
 </body>
 <html>

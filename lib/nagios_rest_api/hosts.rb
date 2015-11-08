@@ -15,7 +15,7 @@ module NagiosRestApi
       all.select { |h| h.name.upcase =~ /^#{hostname.upcase}/i }
     end
     
-    # navbarsearch is crappy and unreliable
+    # nagios navbarsearch is crappy and unreliable
     #def find(hostname)
     #  result = api_client.api.get('/nagios/cgi-bin/status.cgi', { navbarsearch: '1', host: hostname })
     #  result.body.each_line do |line|
@@ -124,25 +124,27 @@ module NagiosRestApi
     end
 
     # post to nagios   
-    def acknowledge(comment="acknowledged by nagios api", sticky=true)
+    def acknowledge(opts={})
+      comment = opts[:comment] || 'downtime set by nagios api'
+      sticky = opts[:sticky] || true 
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, com_author: 'nagios rest api', cmd_typ: '33', cmd_mod: '2', sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Host #{@name} has been acknowledged", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem acknowledging host #{@name}", code: response.code })
     end
     
-    def remove_acknowledgement
+    def remove_acknowledgement(opts={})
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, com_author: 'nagios rest api', cmd_typ: '51', cmd_mod: '2', btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Host #{@name} acknowledgement has been removed", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem removing acknowledgement host #{@name}", code: response.code })
     end
     
 
-    def downtime(duration_minutes=60, comment="downtime set by nagios api")
-      duration_minutes = 60 if duration_minutes == 0
+    def downtime(opts = {})
+      duration_minutes = opts[:minutes] || 60
+      comment = opts[:comment] || 'downtime set by nagios api'
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
-      
       start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
       end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
       
@@ -150,14 +152,14 @@ module NagiosRestApi
         start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
         end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
       end
-     
+
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, childoptions: '0', cmd_mod: '2', cmd_typ: '55', com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', hours: '2', minutes: '0', trigger: '0', btnSubmit: 'Commit' })
-      puts response.body
+      #puts response.body
       return OpenStruct.new({message: "Host #{@name} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for host #{@name}", code: response.code }) 
     end 
     
-    def cancel_downtime
+    def cancel_downtime(opts={})
       effective_downtimes=[]
       response = api_client.api.get('/nagios/cgi-bin/extinfo.cgi', { type: '6' })
       response.body.each_line do |line|
@@ -176,15 +178,15 @@ module NagiosRestApi
         response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { cmd_typ: '78', cmd_mod: '2', down_id: down_id, btnSubmit: 'Commit' })
         response_success false if !response.is_a? Net::HTTPSuccess
       end
-    return OpenStruct.new({message: "Downtime for #{@host} has been removed"}) if response_success
-    return OpenStruct.new({message: "Problem encountered removing downtime #{@host}"}) if !response_success
+    return OpenStruct.new({message: "Downtime for #{@name} has been removed"}) if response_success
+    return OpenStruct.new({message: "Problem encountered removing downtime #{@name}"}) if !response_success
     end
     
-    def enable_notifications
+    def enable_notifications(opts={})
       notifications(24)
     end
     
-    def disable_notifications
+    def disable_notifications(opts={})
       notifications(25)
     end
     

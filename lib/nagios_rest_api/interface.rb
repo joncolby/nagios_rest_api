@@ -111,6 +111,7 @@ module NagiosRestApi
       rescue Net::OpenTimeout => e
           raise "timeout connecting to nagios at #{@base_url}"
       end
+    #TODO: catch invalid session if "groundworks" and do another auth
      
       case response
         when Net::HTTPSuccess then
@@ -144,6 +145,7 @@ module NagiosRestApi
       rescue Net::OpenTimeout => e
           raise "timeout connecting to nagios at #{@base_url}"
       end
+      #TODO: catch invalid session if "groundworks" and do another auth
               
       response
   end

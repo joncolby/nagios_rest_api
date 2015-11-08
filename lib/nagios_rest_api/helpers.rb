@@ -12,6 +12,23 @@ module NagiosRestApi
     def j_(hash_data)
       JSON.pretty_generate(hash_data)
     end  
+    
+    #TODO
+    def process_request(method,params={})
+      host = host params[:hostname]
+      if params[:service] 
+        if host.has_service? params[:service]
+          s = host.get_service(params[:service])
+          response = s.send(method,params)
+          j_ response.to_h
+        else
+          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
+        end
+      else
+        response = host.send(method, params)
+        j_ response.to_h
+      end
+    end
           
   end
 end

@@ -32,7 +32,7 @@ module NagiosRestApi
       info.marshal_dump
     end
     
-    def cancel_downtime
+    def cancel_downtime(opts={})
       effective_downtimes=[]
       response = api_client.api.get('/nagios/cgi-bin/extinfo.cgi', { type: '6' })
       response.body.each_line do |line|
@@ -56,8 +56,9 @@ module NagiosRestApi
     return OpenStruct.new({message: "Problem encountered removing downtime for service \'#{@name}\' on #{@host}"}) if !response_success
     end
 
-    def downtime(duration_minutes=60, comment="downtime set by nagios api")
-      duration_minutes = 60 if duration_minutes == 0
+    def downtime(opts={})
+      duration_minutes = opts[:minutes] || 60
+      comment = opts[:comment] || 'downtime set by nagios api'
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
@@ -72,29 +73,32 @@ module NagiosRestApi
 
       service = CGI::unescape @name      
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, hours: '2', minutes: '0', trigger: '0', cmd_typ: '56', cmd_mod: '2', service: service, com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', btnSubmit: 'Commit' })
+      #puts response.body  
       return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for service #{service} on #{@host}", code: response.code }) 
     end   
     
-    def acknowledge(comment="acknowledged by nagios api", sticky=true)
+    def acknowledge(opts={})
+      comment = opts[:comment] || 'downtime set by nagios api'
+      sticky = opts[:sticky] || true 
       service = CGI::unescape @name
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, cmd_typ: '34', cmd_mod: '2', service: service, sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been acknowledged", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem acknowledging #{service} on #{@host}", code: response.code })
     end
     
-    def remove_acknowledgement
+    def remove_acknowledgement(opts={})
       service = CGI::unescape @name
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, com_author: 'nagios rest api', cmd_typ: '52', cmd_mod: '2', service: service, btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Host #{@name} acknowledgement has been removed", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem removing acknowledgement host #{@name}", code: response.code })
     end
     
-    def enable_notifications
+    def enable_notifications(opts={})
       notifications(22)
     end
     
-    def disable_notifications
+    def disable_notifications(opts={})
       notifications(23)
     end
     

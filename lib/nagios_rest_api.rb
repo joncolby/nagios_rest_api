@@ -10,7 +10,7 @@ require 'nagios_rest_api/services'
 require 'nagios_rest_api/helpers'
 
 #TODO
-# FLASH WITH REDIRECT FOR GET REQUESTS....
+# FLASH WITH REDIRECT FOR GET REQUESTS
 
 class RestApi < Sinatra::Application
   
@@ -67,6 +67,12 @@ class RestApi < Sinatra::Application
      set :root, File.dirname(__FILE__)
      set :bind, @config[:bind_ip]
      set :port, @config[:port]
+     enable :logging
+     log_dir = File.expand_path("../../log",__FILE__)
+     Dir.mkdir log_dir unless File.exists? log_dir
+     file = File.new("#{log_dir}/#{settings.environment}.log", 'a+')
+     file.sync = true
+     use Rack::CommonLogger, file
   end 
 
     not_found do
@@ -80,7 +86,7 @@ class RestApi < Sinatra::Application
     ['/', '/help', '/usage'].each do |route|
     get route do
       content_type :html
-      puts "YO"
+      logger.info "heyho"
       send_file File.expand_path('help.html', settings.public_folder)
     end
     end
@@ -106,107 +112,39 @@ class RestApi < Sinatra::Application
     end
         
     # downtime
-    get '/hosts/:hostname/downtime' do
-      host = host params[:hostname]        
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.downtime params[:minutes].to_i
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.downtime params[:minutes].to_i
-        j_ response.to_h
-      end
-
+    put '/hosts/:hostname/downtime' do   
+      params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60      
+      process_request :downtime, params
     end
     
     # nodowntime
-    get '/hosts/:hostname/nodowntime' do       
-      host = host params[:hostname]        
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.cancel_downtime
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.cancel_downtime
-        j_ response.to_h
-      end      
+    put '/hosts/:hostname/nodowntime' do     
+      process_request :cancel_downtime, params  
+      
     end
     
     # acknowledge
-    get '/hosts/:hostname/ack' do
-      host = host params[:hostname]
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.acknowledge
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.acknowledge
-        j_ response.to_h
-      end    
+    put '/hosts/:hostname/ack' do
+      process_request :acknowledge, params    
     end
 
     # unacknowledge
-    get '/hosts/:hostname/unack' do
-      host = host params[:hostname]      
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.remove_acknowledgement
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.remove_acknowledgement
-        j_ response.to_h
-      end
+    put '/hosts/:hostname/unack' do
+      process_request :remove_acknowledgement, params    
     end
     
     # enable notifications
-    get '/hosts/:hostname/disable' do
-      host = host params[:hostname]
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.disable_notifications
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.disable_notifications
-        j_ response.to_h
-      end
+    put '/hosts/:hostname/disable' do
+      process_request :disable_notifications, params
     end
     
     # disable notifications
-    get '/hosts/:hostname/enable' do
-      host = host params[:hostname]
-      if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.enable_notifications
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
-      else
-        response = host.enable_notifications
-        j_ response.to_h
-      end
-    end        
+    put '/hosts/:hostname/enable' do
+      process_request :enable_notifications, params
+    end  
+    
+    post '/slack' do
+    end      
   
     run! if app_file == $0  
 end
