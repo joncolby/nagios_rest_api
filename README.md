@@ -1,8 +1,8 @@
-# varnish-rest-api
+# nagios-rest-api
 
 ## Overview
 
-A small RESTful HTTP API for Nagios written in Ruby/[Sinatra](<http://www.sinatrarb.com/intro.html>).  This software also provides a ruby library to interface with Nagios.  Behind-the-scenes, the api simply invokes various Nagios cgi programs with the appropriate parameters.
+A small RESTful HTTP API for Nagios written in Ruby/[Sinatra](<http://www.sinatrarb.com/intro.html>).  This software also provides a ruby library to interface with Nagios.  Behind-the-scenes, the api simply invokes various Nagios cgi programs with the appropriate parameters because old (dinosaur old) versions of nagios don't have an api.
 
 #### Features
 
@@ -13,35 +13,19 @@ A small RESTful HTTP API for Nagios written in Ruby/[Sinatra](<http://www.sinatr
 
 ## Getting Started
 
-### Installing
 
 *NOTE: It is recommended to use a ruby version manager such as [rvm](<https://rvm.io/>) instead of installing with the system ruby. With a ruby version manager, you can prevent "contaminating" your system-level ruby installation by creating an isolated ruby environment independent of system-installed ruby libraries. Plus, on some systems, installing gems at the system level may require root privileges.*
 
-```
-gem install nagios_rest_api
-```
 
 ### Configuration
 
-Configuration settings are stored in a file called **nagios_rest_api.yaml**. The default, example configuration can be found in the root directory of this repo or in the installed gem location.
+Configuration settings are stored in a file called **nagios_rest_api.yaml**. The default, example configuration can be found in the root directory of this repo or in the installed location.
 
 This file is search for in the following paths in this order.  The first file found is used:
 
 * **/etc/nagios_rest_api.yaml**
 * **HOME-DIR-OF-PROCESS-USER/nagios_rest_api.yaml**
-* **GEMFILE-PATH/lib/nagios_rest_api.yaml**
 
-To locate and copy the default yaml configuration when installed as a gem (example: version might be different):
-
-```
-$gem contents nagios_rest_api |grep yaml$
-..
-/usr/lib/ruby/gems/1.8/gems/nagios_rest_api-0.0.2/lib/nagios_rest_api.yaml
-..
-
-$cp /usr/lib/ruby/gems/1.8/gems/nagios_rest_api-0.0.2/lib/nagios_rest_api.yaml ~/
-
-```
 
 ### Running
 
@@ -52,10 +36,10 @@ $cp /usr/lib/ruby/gems/1.8/gems/nagios_rest_api-0.0.2/lib/nagios_rest_api.yaml ~
 [instructions on the rvm site](<https://rvm.io/>) 
 
 * clone this git repo.
-*. copy example config to your home directory (or /etc/)
+* copy example config to your home directory (or /etc/)
 
 ```
-$ cp nagios_rest_api/nagios_rest_api.yaml.example ~/nagios_rest_api.yaml
+$ cp nagios_rest_api/examples/nagios_rest_api.yaml.example ~/nagios_rest_api.yaml
 ```
 
 * run bundler to install dependencies
@@ -201,23 +185,7 @@ PID    VMSize    Private  Name
 The usage documentation is available at the root context:
 
 ```
-http://your-ip-address:10001/
+http://your-ip-address:port/
 ```
 
-
-### RESTful API Actions
- 
-
-
-| Method  | Url | Description | Remarks | 
-|------|------|------|------|
-| GET | /hosts   | show all hosts | read-only |
-| GET | /hosts/*hostname*   | show info for hostname | read-only |
-| GET | /hosts/find/*hostpattern* | find hosts matching a simple pattern  | read-only | 
-| GET | /hosts/*hostname*/downtime[?service=*servicename*] | set downtime | |
-| GET | /hosts/*hostname*/nodowntime[?service=*servicename*] | unset downtime | |
-| GET | /hosts/*hostname*/ack[?service=*servicename*] | set acknowledgement | |
-| GET | /hosts/*hostname*/unack[?service=*servicename*] | unset acknowledgement | |
-| GET | /hosts/*hostname*/enable[?service=*servicename*] | enable notifications | |
-| GET | /hosts/*hostname*/disable[?service=*servicename*] | disable notifications | |
 
