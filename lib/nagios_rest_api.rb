@@ -86,7 +86,6 @@ class RestApi < Sinatra::Application
     ['/', '/help', '/usage'].each do |route|
     get route do
       content_type :html
-      logger.info "heyho"
       send_file File.expand_path('help.html', settings.public_folder)
     end
     end
