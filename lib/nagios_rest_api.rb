@@ -144,6 +144,8 @@ class RestApi < Sinatra::Application
     end  
     
     post '/slack' do
+      puts "not yet implemented"
+      "not yet implemented"
     end      
   
     run! if app_file == $0  
