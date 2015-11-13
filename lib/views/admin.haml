@@ -1,0 +1,17 @@
+!!!
+%html
+	%head
+		%title User Admin
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.container
+					- @users.each do |user|
+						%ul		
+							%li
+								<h3>User: #{user.name}</h3>  
+							%li
+								Account Status: <b>#{user.locked ? 'LOCKED' : 'ACTIVE'}</b>, Token Status: <b>#{user.revoked ? 'REVOKED' : 'VALID'}</b>
+							%li
+								Nagios Host Groups: <b>#{user.host_groups}</b>	
+							%li
+								%a{ :href => "/admin/edit/#{user.id}"}Edit User						

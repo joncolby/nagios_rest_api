@@ -2,8 +2,14 @@
 # EXAMPLE CONFIG FILE
 username: USER
 password: PASSWORD
-nagios_url: "https://gw01.unbelievable-machine.net"
+nagios_url: "https://nagios.mydomain.com"
 use_groundworks_auth: true
 date_format: eu # or us
-slack_token: HkjhkjHYGVJHKJH # the token expected from slack integration
-client_token:  LJkljkloJKHKHK  # the token for client programs, basic auth over ssl is also recommended
+# crowd groups allowed admin rights to lock users and revoke tokens
+crowd_admin_groups:
+  - group1
+  - group2
+  - group3
+crowd_server_url: "https://crowd.mydomain.com"
+crowd_application_name: "nagios-rest-api"
+crowd_application_password: "123456789"

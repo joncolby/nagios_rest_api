@@ -1,0 +1,85 @@
+/* basic elements */
+
+br {line-height: 1px}
+
+html {
+	margin: 0;
+	padding: 0;
+	}
+body { 
+	font: 75% georgia, sans-serif;
+	line-height: 1.88889;
+	color: #555753; 
+	background: #fff;
+	margin: 0; 
+	padding: 0;
+	}
+p { 
+	margin-top: 0; 
+	text-align: justify;
+	}
+h3 { 
+	font: italic normal 1.4em georgia, sans-serif;
+	letter-spacing: 1px; 
+	margin-bottom: 0; 
+	color: #7D775C;
+	}
+h2 { 
+	font: italic normal 2.0em georgia, sans-serif;
+	letter-spacing: 1px; 
+	margin-bottom: 0; 
+	color: #7D775C;
+}
+a:link { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: #000000;
+	}
+a:visited { 
+	font-weight: bold; 
+	text-decoration: none; 
+	color: #000000;
+	}
+a:hover, a:focus, a:active { 
+	text-decoration: underline; 
+	color: #9685BA;
+	}
+abbr {
+	border-bottom: none;
+	}
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+
+input[type="text"] {
+    width: 500px;
+}
+
+.header {
+	clear: both; 
+	margin: 5px 5px 5px 5px; 
+	float: right;
+	}
+.header p {
+	font: italic 1.1em/2.2 georgia; 
+	}
+
+.page-wrapper { 	
+	padding: 0 500px 0 110px;  
+	margin: 0; 
+	position: relative;
+	}
+
+.error {
+	color: #FF0000;
+	}
+
+ul { 
+	list-style: none 
+	}

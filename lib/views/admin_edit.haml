@@ -1,0 +1,36 @@
+!!!
+%html
+	%head
+		%title User #{@user.name}
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					- if @user
+						%form{ :action => "/admin/#{@user.id}", :method => "post"}
+							%input{:type => "hidden", :name => "_method", :value => "put" }
+								%ul
+									%li
+										%p
+											%h2 #{@user.name}
+									- if flash[:error]
+										%li
+											%h3.error Error: #{flash[:error]}
+									%li																													
+										%h3 
+											Nagios Host Groups
+										%input{:name => "user[host_groups]", :type => "text", :value => "#{@user.host_groups}"}
+										%p											
+											Comma-separated list of allowed Nagios Host Groups.
+											%br Example:  WEB1, DATABASES, BACKEND_HOSTS
+											<b>ALL</b> or <b>NONE</b> keywords can also be used
+									%li
+										%h3
+											%input{:type => "checkbox", :name => "user[locked]", :checked => !!@user.locked } lock account (if locked, user will not be able to login)
+									%li
+										%h3
+											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token (if revoked, user cannot use the api-token)
+									%li
+										%br
+											%input{:type => "submit", :value => "update user"}								
+					- else
+						%p user not found

@@ -13,7 +13,6 @@ module NagiosRestApi
       JSON.pretty_generate(hash_data)
     end  
     
-    #TODO
     def process_request(method,params={})
       host = host params[:hostname]
       if params[:service] 
@@ -28,6 +27,14 @@ module NagiosRestApi
         response = host.send(method, params)
         j_ response.to_h
       end
+    end
+    
+    def current_user
+      @current_user ||= NagiosRestApi::User.get(session[:user_id]) if session[:user_id]
+    end
+    
+    def logged_in?
+        !session[:user_id].nil?
     end
           
   end

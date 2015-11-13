@@ -1,0 +1,31 @@
+!!!
+%html
+	%head
+		%title User #{@user.name}
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					- if @user
+						%ul
+							%li
+								%p
+									%h2 #{@user.name}
+							%li																													
+								%h3 
+									Nagios Host Groups:
+								#{@user.host_groups}
+							%li
+								%h3
+									account is #{@user.locked ? '' : 'not' } locked 
+							%li
+								%h3
+									token is #{@user.revoked ? 'revoked' : 'valid' }
+							%li	
+								%br		
+									%a{ :href => "/admin/edit/#{@user.id}"}
+										Edit User	
+									|						
+									%a{ :href => "/admin"}
+										Main Admin Page								
+					- else
+						%p user not found

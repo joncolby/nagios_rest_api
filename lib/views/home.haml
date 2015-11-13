@@ -1,0 +1,13 @@
+%title #{@title}
+%form{ :action => "/", :method => "post"}
+ %textarea{:name => "content"}
+ %input{:type => "submit", :value => "create note"}
+ 
+%ul
+ - @notes.each do |note|
+  %li
+   %a{:href => "/#{note.id}"}#{note.id}
+   #{note.content}
+   %a{:href => "/#{note.id}/complete"} - mark as #{note.complete ? "not complete" : "complete"}
+
+ 

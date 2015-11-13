@@ -12,3 +12,4 @@
 .buildpath
 .project
 /log/
+nagios_rest_api.db
