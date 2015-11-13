@@ -24,20 +24,13 @@ class RestApi < Sinatra::Application
   
   helpers NagiosRestApi::Helpers
     
-  configure do  
-
-    use Rack::Session::Cookie, 
-      :secret  => 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a',
-      :expire_after => 14400 # In seconds
+  configure do              
+      @config ||= {}
     
-    use Rack::Flash
-    
-    @config ||= {}
-  
-    config_file = "nagios_rest_api.yaml"      
-    config_paths = [ '/etc/' + config_file, File.dirname(__FILE__) + '/' + config_file ]
-    config_paths.insert(1, ENV['HOME'] + '/' + config_file) if ENV['HOME']
-    config_location = config_paths.detect {|config| File.file?(config) }
+      config_file = "nagios_rest_api.yaml"      
+      config_paths = [ '/etc/' + config_file, File.dirname(__FILE__) + '/' + config_file ]
+      config_paths.insert(1, ENV['HOME'] + '/' + config_file) if ENV['HOME']
+      config_location = config_paths.detect {|config| File.file?(config) }
   
       if !config_location
        $stderr.puts "no configuration file found in paths: " + config_paths.join(',')
@@ -86,7 +79,10 @@ class RestApi < Sinatra::Application
      set :sessions, true
      set :session_secret, 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a'    
      set :public_folder, 'public'    
-     set :admin_groups, @config[:admin_groups]
+     set :admin_groups, @config[:crowd_admin_groups]
+     set :crowd_server_url, @config[:crowd_server_url]
+     set :crowd_application_name, @config[:crowd_application_name]
+     set :crowd_application_password, @config[:crowd_application_password]
 
      # logging settings
      enable :logging
@@ -94,10 +90,11 @@ class RestApi < Sinatra::Application
      Dir.mkdir log_dir unless File.exists? log_dir
      file = File.new("#{log_dir}/#{settings.environment}.log", 'a+')
      file.sync = true
+     
      use Rack::CommonLogger, file
      use Rack::Flash
      use Rack::Session::Cookie, 
-        :session_secret  => '1DiAZhC=v&>@A%MC0qS87b?V=qC7m{',
+        :session_secret  => 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a',
         :expire_after => 14400 # In seconds
   end 
 
