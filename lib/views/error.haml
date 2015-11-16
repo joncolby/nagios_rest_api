@@ -1,0 +1,17 @@
+!!!
+%html
+	%head
+		%title Error
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					.header
+						%p									
+							%a{ :href => "/"} Home
+							%ul
+								%li
+									%h1{ :class => 'error'}
+										An error has occurred		
+								- if flash[:error]
+									%li
+										%h3.error Error: #{flash[:error]}

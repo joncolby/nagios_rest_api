@@ -2,6 +2,35 @@ require 'json'
 module NagiosRestApi
   module Helpers
     
+    def self.load_config
+      config ||= {}
+      config_file = "nagios_rest_api.yaml"      
+      config_paths = [ '/etc/' + config_file, File.dirname(__FILE__) + '/' + config_file ]
+      config_paths.insert(1, ENV['HOME'] + '/' + config_file) if ENV['HOME']
+      config_location = config_paths.detect {|config| File.file?(config) }
+  
+      if !config_location
+       $stderr.puts "no configuration file found in paths: " + config_paths.join(',')
+       exit!
+      else
+       puts "using configuration file: " + config_location
+      end
+     
+      config_parsed = begin
+        YAML.load(File.open(config_location))
+      rescue ArgumentError, Errno::ENOENT => e
+        $stderr.puts "Exception while opening yaml config file: #{e}"
+        exit!
+      end           
+            
+      begin
+        config = config_parsed.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+      rescue NoMethodError => e
+        $stderr.puts 'error parsing configuration yaml'
+      end
+      return config
+    end
+    
     def host(name)
       host = NagiosRestApi::Host.new(name, { api_client: settings.client })
       h = host.info.to_h

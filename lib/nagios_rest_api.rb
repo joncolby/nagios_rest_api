@@ -17,40 +17,23 @@ require 'nagios_rest_api/services'
 require 'nagios_rest_api/helpers'
 
 class RestApi < Sinatra::Application
-  
+
   helpers do
       include Rack::Utils
   end
   
   helpers NagiosRestApi::Helpers
-    
-  configure do              
-      @config ||= {}
-    
-      config_file = "nagios_rest_api.yaml"      
-      config_paths = [ '/etc/' + config_file, File.dirname(__FILE__) + '/' + config_file ]
-      config_paths.insert(1, ENV['HOME'] + '/' + config_file) if ENV['HOME']
-      config_location = config_paths.detect {|config| File.file?(config) }
+
+  use OmniAuth::Builder do
+    provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
+  end 
   
-      if !config_location
-       $stderr.puts "no configuration file found in paths: " + config_paths.join(',')
-       exit!
-      else
-       puts "using configuration file: " + config_location
-      end
-     
-      config_parsed = begin
-        YAML.load(File.open(config_location))
-      rescue ArgumentError, Errno::ENOENT => e
-        $stderr.puts "Exception while opening yaml config file: #{e}"
-        exit!
-      end           
-            
-      begin
-        @config = config_parsed.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
-      rescue NoMethodError => e
-        $stderr.puts 'error parsing configuration yaml'
-      end
+  OmniAuth.config.on_failure = Proc.new { |env|
+    OmniAuth::FailureEndpoint.new(env).redirect_to_failure
+  }
+  
+  configure do
+    @config ||= NagiosRestApi::Helpers.load_config
 
       set(:auth) do |*groups|
         condition do     
@@ -80,9 +63,9 @@ class RestApi < Sinatra::Application
      set :session_secret, 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a'    
      set :public_folder, 'public'    
      set :admin_groups, @config[:crowd_admin_groups].map(&:to_sym)
-     set :crowd_server_url, @config[:crowd_server_url]
-     set :crowd_application_name, @config[:crowd_application_name]
-     set :crowd_application_password, @config[:crowd_application_password]
+     #set :crowd_server_url, @config[:crowd_server_url]
+     #set :crowd_application_name, @config[:crowd_application_name]
+     #set :crowd_application_password, @config[:crowd_application_password]
 
      # logging settings
      enable :logging
@@ -104,7 +87,8 @@ class RestApi < Sinatra::Application
         end
       end
     end
-  end 
+ 
+  end
 
     not_found do
       halt 404, { :message => "Action #{request.path_info} is not supported" }.to_json
@@ -197,40 +181,58 @@ class RestApi < Sinatra::Application
     #OAUTH
     get '/auth/crowd' do 
       # TODO: REMOVE AFTER TESTING !!
-      redirect '/auth/crowd/callback'
+      #redirect '/auth/crowd/callback'
+    end
+    
+    #OAUTH FAILURE
+    get '/auth/failure' do
+      flash[:error] = "#{params[:message] || params[:error_reason]}"
+      haml :error
     end
     
     #OAUTH
     get '/auth/crowd/callback' do
       auth = request.env['omniauth.auth']
-      request.env.each_pair { |k,v| puts "HEADER #{k}: #{v}" } if request.env
+      
+      #request.env.each_pair { |k,v| puts "HEADER #{k}: #{v}" } if request.env
       #puts "auth method: #{auth}"    
       #puts "auth object class: #{auth.class}"    
       #auth.each_pair { |k,v| puts "AUTH_HASH->#{k}: #{v}" } if auth
         
       ### TESTING OFFLINE - FAKE RETURN HASH
+=begin      
       auth = {
-        'uid' => 55,
-        'info' => { 'name'    => 'Jonathan2 Colby2',
+        'uid' => 'jonathan.colby',
+        'info' => { 'name'    => 'Jonathan Colby',
                     'groups'  => ["confluence-administrators", "confluence-users","my-users",  "stash-administrators", "stash-users", "um", "um-16", "um-47", "umcommunicator"]
                   }    
       }
-      
-      user = NagiosRestApi::User.first_or_create({ :uid => auth['uid']}, {
+=end
+
+      @user = NagiosRestApi::User.first_or_create({ :uid => auth['uid']}, {
         :name => auth['info']['name']
       })
       
-      unless user
-        logger.error = @user.errors.map { |e| "#{e.join(', ')}" }.join("; ")
+      #puts "ERRORS: #{@user.errors.map { |e| "#{e.join(', ')}" }.join("; ")}"
+
+      unless @user.errors.empty?
+        error_msg = @user.errors.map { |e| "#{e.join(', ')}" }.join("; ")
+        puts error_msg
+        flash[:error] = error_msg
         redirect '/error' 
       end
             
-      user.locked and unauthorized
+      @user.locked and unauthorized
     
       session[:admin] = true
       session[:groups] =  auth['info']['groups'].map &:to_sym
-      session[:user_id] = user.id
+      session[:user_id] = @user.id
+
       redirect '/'      
+    end
+    
+    get '/error' do
+      haml :error
     end
     
     # show user page
@@ -256,7 +258,7 @@ class RestApi < Sinatra::Application
       @user = NagiosRestApi::User.get params[:id]
       name = @user.name if @user
       @user.destroy or redirect '/error'
-      logger.info "user #{@user.name} was deleted"
+      puts "user #{@user.name} was deleted"
       flash[:error] = "User #{name} has been deleted"
       redirect '/admin'
     end
@@ -274,9 +276,9 @@ class RestApi < Sinatra::Application
     
     # admin - create user
     post '/admin/create', :auth => settings.admin_groups do
-      @user = NagiosRestApi::User.new
-      @user.uid = NagiosRestApi::User.max(:uid) + 1
+      @user = NagiosRestApi::User.new      
       @user.name = params[:user][:name]
+      @user.uid = @user.name.gsub(/\s+/, '.').downcase
       @user.locked = params[:user][:locked] == "on" ? true : false
       @user.revoked = params[:user][:revoked] == "on" ? true : false
       @user.host_groups = parse_hostgroups(params[:user][:host_groups])

@@ -21,7 +21,7 @@
 					- @users.each do |user|
 						%ul		
 							%li
-								<h3>#{user.name}</h3>  
+								<h3>#{user.name} (#{user.uid})</h3>  
 							%li
 								Account Status: <b>#{user.locked ? 'LOCKED' : 'ACTIVE'}</b>, Token Status: <b>#{user.revoked ? 'REVOKED' : 'VALID'}</b>
 							%li
