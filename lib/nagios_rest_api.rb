@@ -191,8 +191,8 @@ class RestApi < Sinatra::Application
     get '/auth/crowd/callback' do
       auth = request.env['omniauth.auth']
       
-      request.env.each_pair { |k,v| puts "HEADER: #{k}=>#{v}" } if request.env   
-      auth.each_pair { |k,v| puts "AUTH_HASH: #{k}=>#{v}" } if auth
+      #request.env.each_pair { |k,v| puts "HEADER: #{k}=>#{v}" } if request.env   
+      #auth.each_pair { |k,v| puts "AUTH_HASH: #{k}=>#{v}" } if auth
         
       ### TESTING OFFLINE - FAKE RETURN HASH
 =begin      
