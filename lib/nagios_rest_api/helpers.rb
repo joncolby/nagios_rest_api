@@ -1,6 +1,7 @@
 require 'json'
 module NagiosRestApi
   module Helpers
+    
     def host(name)
       host = NagiosRestApi::Host.new(name, { api_client: settings.client })
       h = host.info.to_h
@@ -9,9 +10,45 @@ module NagiosRestApi
       return host
     end
     
+    def authorized_host?(hostname)
+      return false unless valid_api_request? 
+      user_host_groups = hostgroups_to_a(current_user.host_groups)
+      return true if user_host_groups.include? 'ANY' 
+      return false if user_host_groups.include? 'NONE' 
+      return authorized_hosts.any? { |h| h.name.upcase == hostname.upcase }      
+    end
+
+    def authorized_hosts
+      user_host_groups = current_user.host_groups
+      client = settings.client
+      @authorized_hosts = Array.new
+      hostgroups_to_a(user_host_groups).each do |host_group|
+        hg = NagiosRestApi::HostGroup.new(host_group,{ api_client: settings.client })
+        members = hg.members
+        next unless members
+        @authorized_hosts.push(*members)        
+      end
+      @authorized_hosts.uniq { |h| h.name }
+    end
+        
     def j_(hash_data)
       JSON.pretty_generate(hash_data)
     end  
+    
+    def unauthorized
+      halt 401, { :message => 'Unauthorized' }.to_json
+    end
+
+    def valid_token?
+      return false unless request.env["HTTP_ACCESS_TOKEN"]
+      user = NagiosRestApi::User.first(:token => request.env["HTTP_ACCESS_TOKEN"])
+      return false unless user
+      !user.revoked
+    end
+    
+    def valid_api_request?
+      current_user || valid_token?
+    end
     
     def process_request(method,params={})
       host = host params[:hostname]
@@ -29,12 +66,33 @@ module NagiosRestApi
       end
     end
     
+    def hostgroups_to_a(group_as_string)
+      group_as_string.split(',').collect{ |g| g.gsub(/\s+/, "") }
+    end
+    
+    def parse_hostgroups(groups)
+        groups_list = groups.split(',').collect{ |g| g.gsub(/\s+/, "") }
+        if groups_list.include?('NONE')
+          return 'NONE' 
+        elsif groups_list.include?('ALL')
+          return 'ALL'
+        else
+          return groups_list.join(',')
+        end  
+    end
+    
     def current_user
-      @current_user ||= NagiosRestApi::User.get(session[:user_id]) if session[:user_id]
+      logged_in_user = NagiosRestApi::User.get(session[:user_id]) if session[:user_id]
+      user_by_token = NagiosRestApi::User.first(:token => request.env["HTTP_ACCESS_TOKEN"]) if request.env["HTTP_ACCESS_TOKEN"]
+      @current_user ||= logged_in_user or user_by_token 
     end
     
     def logged_in?
         !session[:user_id].nil?
+    end
+    
+    def is_admin?
+      logged_in? && !(settings.admin_groups & session[:groups]).empty?
     end
           
   end

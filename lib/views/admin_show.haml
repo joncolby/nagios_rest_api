@@ -5,6 +5,14 @@
 		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
 			%body
 				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/admin/new" } Create New User|
+								%a{ :href => "/help"} Help|											 
+								%a{ :href => "/logout"} Logout
 					- if @user
 						%ul
 							%li
@@ -20,12 +28,12 @@
 							%li
 								%h3
 									token is #{@user.revoked ? 'revoked' : 'valid' }
+								%p
+									API-token: #{@user.token} 
 							%li	
 								%br		
-									%a{ :href => "/admin/edit/#{@user.id}"}
-										Edit User	
-									|						
-									%a{ :href => "/admin"}
-										Main Admin Page								
+									%a{ :href => "/admin/#{@user.id}/edit"}
+										Edit User					
+																
 					- else
 						%p user not found

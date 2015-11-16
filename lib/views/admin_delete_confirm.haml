@@ -1,0 +1,30 @@
+!!!
+%html
+	%head
+		%title Delete User #{@user.name}
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/admin/new" } Create New User|
+								%a{ :href => "/help"} Help|										 
+								%a{ :href => "/logout"} Logout
+					- if @user
+						%form{ :action => "/admin/#{@user.id}/destroy", :method => "post"}
+							%input{:type => "hidden", :name => "_method", :value => "delete" }
+								%ul
+									- if flash[:error]
+										%li
+											%h3.error Error: #{flash[:error]}
+									%li
+										%h3
+											Are you sure you want to delete user "#{@user.name}"?												
+									%li
+										%input{:type => "submit", :value => "delete user"}|					
+										%a{ :href => "/admin"} Cancel							
+					- else
+						%p user not found

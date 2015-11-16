@@ -22,6 +22,7 @@ module NagiosRestApi
     
     #TODO
     def hostgroups
+      @hostgroups ||= NagiosRestApi::HostGroups.new(api_client: self)
     end
     
   end

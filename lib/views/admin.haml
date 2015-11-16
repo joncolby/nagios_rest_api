@@ -4,14 +4,28 @@
 		%title User Admin
 		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
 			%body
-				.container
+				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/admin/new" } Create New User|
+								%a{ :href => "/help"} Help|										 
+								%a{ :href => "/logout"} Logout
+						%p
+							- if flash[:notice]
+								%div{ :class => 'notice' } #{flash[:notice]}
+					%h2
+						Users
 					- @users.each do |user|
 						%ul		
 							%li
-								<h3>User: #{user.name}</h3>  
+								<h3>#{user.name}</h3>  
 							%li
 								Account Status: <b>#{user.locked ? 'LOCKED' : 'ACTIVE'}</b>, Token Status: <b>#{user.revoked ? 'REVOKED' : 'VALID'}</b>
 							%li
 								Nagios Host Groups: <b>#{user.host_groups}</b>	
 							%li
-								%a{ :href => "/admin/edit/#{user.id}"}Edit User						
+								%a{ :href => "/admin/#{user.id}/edit"}Edit User|
+								%a{ :href => "/admin/#{user.id}/delete"}Delete User							

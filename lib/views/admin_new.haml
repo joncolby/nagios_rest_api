@@ -1,0 +1,41 @@
+!!!
+%html
+	%head
+		%title Create User
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/admin/new" } Create New User|
+								%a{ :href => "/help"} Help|										 
+								%a{ :href => "/logout"} Logout
+					%form{ :action => "/admin/create", :method => "post"}
+						%ul
+							- if flash[:error]
+								%li
+									%h3.error Error: #{flash[:error]}
+							%li
+								%h3
+									User Name	
+								%input{:type => "text", :name => "user[name]", :value => "#{@user.name if @user}" }
+							%li																													
+								%h3 
+									Nagios Host Groups
+								%input{:name => "user[host_groups]", :type => "text",  :value => "#{@user.host_groups if @user}"}
+								%p											
+									Comma-separated list of allowed Nagios Host Groups.
+									%br Example:  WEB1, DATABASES, BACKEND_HOSTS
+									<b>ALL</b> or <b>NONE</b> keywords can also be used
+							%li
+								%h3
+									%input{:type => "checkbox", :name => "user[locked]",  :checked => false } lock account (if locked, user will not be able to login)
+							%li
+								%h3									 
+									%input{:type => "checkbox", :name => "user[revoked]", :checked => false } revoke token (if revoked, user cannot make api calls with token)
+							%li
+								%br
+									%input{:type => "submit", :value => "create user"}

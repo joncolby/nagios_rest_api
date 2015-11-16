@@ -1,13 +1,119 @@
-%title #{@title}
-%form{ :action => "/", :method => "post"}
- %textarea{:name => "content"}
- %input{:type => "submit", :value => "create note"}
- 
-%ul
- - @notes.each do |note|
-  %li
-   %a{:href => "/#{note.id}"}#{note.id}
-   #{note.content}
-   %a{:href => "/#{note.id}/complete"} - mark as #{note.complete ? "not complete" : "complete"}
-
- 
+!!!
+%html
+	%head
+		%title Nagios Rest Api
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								Logged in as #{current_user.name}|
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								- if is_admin?
+									%a{ :href => "/admin" } Admin Home|									 
+								%a{ :href => "/logout"} Logout
+							- else
+								%a{ :href => "/auth/crowd"}
+									Login 
+								to retrieve your api-token or perform requests via browser
+					%h2
+						Nagios Rest API Commands
+					%p
+						%table{ :border => '1' }
+							%tr
+								%th method
+								%th command
+								%th description
+								%th parameters (* indicates required)
+							%tr
+								%td GET
+								%td /hosts
+								%td list all hostnames
+								%td -
+							%tr
+								%td GET
+								%td /hosts/<b>hostname</b>
+								%td show detailed host and service status for hostname
+								%td -
+							%tr
+								%td GET
+								%td /hosts/find/<b>hostname</b>
+								%td find hosts matching a simple pattern
+								%td -
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/downtime
+								%td set downtime
+								%td service=(service name), duration=(minutes, default: 60)
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/nodowntime
+								%td remove downtime
+								%td service=(service name)
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/ack
+								%td set acknowledgement
+								%td service=(service name)
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/unack
+								%td unset acknowledgement
+								%td service=(service name)
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/enable
+								%td enable notifications
+								%td service=(service name)
+							%tr
+								%td PUT
+								%td /hosts/<b>hostname</b>/disable
+								%td disable notifications
+								%td service=(service name)
+						%h2
+							Notes
+						%ul
+							%li - For PUT actions, if no 'service' parameter is supplied, action will be applied to HOST
+							%li - API calls can be made using an api-token. login to retrieve your api-token.
+							%li - If there is a space in the service name, you can use '+'.  Example:  service=Swap+Usage</
+							
+						%h2 
+							Examples
+						%ul
+							%li 
+								Get a list of all hosts in Nagios (takes ~5 seconds)
+								%pre
+									curl -o - -H "access_token: myapitoken" #{settings.api_url}:#{settings.port}/hosts
+							%li
+								Get detailed status information about host and service running on 'myhostname' (takes ~20 seconds)
+								%pre
+									curl -o -  -H "access_token: myapitoken" #{settings.api_url}:#{settings.port}/hosts/myhostname
+							%li
+								Find all hosts matching pattern *ghei* (depending on shell, you may need to quote the url when running on the command line)</b>
+								%pre
+									curl -o -  -H "access_token: myapitoken" '#{settings.api_url}:#{settings.port}/hosts/find/*web*'
+							%li
+								Set 10 minutes of downtime for service 'swap_utilisation' on host 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=swap_utilisation -d duration=10 #{settings.api_url}:#{settings.port}/hosts/myhostname/downtime
+							%li
+								Set 60 minutes of downtime for host 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT -d duration=60 #{settings.api_url}:#{settings.port}/hosts/myhostname/downtime
+							%li
+								Remove downtime for host 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT  #{settings.api_url}:#{settings.port}/hosts/myhostname/nodowntime
+							%li
+								Acknowledge 'disk_utilization' service problem 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation #{settings.api_url}:#{settings.port}/hosts/myhostname/ack
+							%li
+								Remove acknowledgement for 'disk_utilization' service problem 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation  #{settings.api_url}:#{settings.port}/hosts/myhostname/unack
+							%li
+								Disable notifications for host 'myhostname'
+								%pre
+									curl -o -  -H "access_token: myapitoken" -X PUT #{settings.api_url}:#{settings.port}/hosts/myhostname/disable

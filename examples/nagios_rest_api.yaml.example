@@ -5,6 +5,8 @@ password: PASSWORD
 nagios_url: "https://nagios.mydomain.com"
 use_groundworks_auth: true
 date_format: eu # or us
+api_url: "https://api.mydomain.com"
+api_port: 9090
 # crowd groups allowed admin rights to lock users and revoke tokens
 crowd_admin_groups:
   - group1

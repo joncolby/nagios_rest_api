@@ -5,16 +5,25 @@
 		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
 			%body
 				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								%a{ :href => "/users/#{current_user.id}"} My Profile|
+								%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/admin/new" } Create New User|
+								%a{ :href => "/help"} Help|										 
+								%a{ :href => "/logout"} Logout
 					- if @user
 						%form{ :action => "/admin/#{@user.id}", :method => "post"}
 							%input{:type => "hidden", :name => "_method", :value => "put" }
 								%ul
-									%li
-										%p
-											%h2 #{@user.name}
 									- if flash[:error]
 										%li
 											%h3.error Error: #{flash[:error]}
+									%li
+										%h3
+											User Name	
+										%input{:type => "text", :name => "user[name]", :value => "#{@user.name}" }
 									%li																													
 										%h3 
 											Nagios Host Groups
@@ -28,9 +37,12 @@
 											%input{:type => "checkbox", :name => "user[locked]", :checked => !!@user.locked } lock account (if locked, user will not be able to login)
 									%li
 										%h3
-											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token (if revoked, user cannot use the api-token)
+											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token (if revoked, user cannot make api calls with token)
+										%p
+											API-token: #{@user.token} 										
 									%li
 										%br
-											%input{:type => "submit", :value => "update user"}								
+											%input{:type => "submit", :value => "update user"}|
+											%a{ :href => "/admin/#{@user.id}/delete"}Delete User								
 					- else
 						%p user not found

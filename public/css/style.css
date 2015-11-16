@@ -24,6 +24,12 @@ h3 {
 	margin-bottom: 0; 
 	color: #7D775C;
 	}
+.plain {
+	font: normal 1.4em georgia, sans-serif;
+	letter-spacing: 1px; 
+	margin-bottom: 0; 
+	color: #000;
+}
 h2 { 
 	font: italic normal 2.0em georgia, sans-serif;
 	letter-spacing: 1px; 
@@ -47,6 +53,14 @@ a:hover, a:focus, a:active {
 abbr {
 	border-bottom: none;
 	}
+	
+td {
+    white-space: nowrap;
+}	
+
+th {
+    white-space: nowrap;
+}
 
 a.button {
     -webkit-appearance: button;
@@ -70,18 +84,21 @@ input[type="text"] {
 	width: 100%;
 	}
 .header p {
-	font: italic 1.1em/2.2 georgia; 
+	font: 1.1em/2.2 georgia; 
 	}
 
 .page-wrapper { 	
 	padding: 0 500px 0 110px;  
-	margin: 0; 
+	margin: 0;
 	position: relative;
 	}
 
 .error {
 	color: #FF0000;
 	}
+.notice {
+	color: #7D775C
+}
 
 ul { 
 	list-style: none 

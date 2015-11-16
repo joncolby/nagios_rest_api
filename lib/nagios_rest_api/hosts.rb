@@ -35,9 +35,9 @@ module NagiosRestApi
         match = line.match re
         next if match.to_s.empty?
         hostname = match[1].strip.sub(/\#.*$/,'')       
-      @hosts << Host.new(hostname, { api_client: @api_client }) unless hosts.any? { |h| h.name == hostname }
+      @hosts << Host.new(hostname, { api_client: @api_client })
       end
-      @hosts
+      @hosts.uniq {|h| h.name }
     end  
    end  
   

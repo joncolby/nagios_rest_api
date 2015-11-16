@@ -1,0 +1,34 @@
+!!!
+%html
+	%head
+		%title User #{current_user.name}
+		%link{:rel => 'stylesheet', :type => 'text/css', :href => '/css/style.css'}
+			%body
+				.page-wrapper
+					.header
+						%p					
+							- if current_user
+								Logged in as #{current_user.name}|
+								- if is_admin?
+									%a{ :href => "/admin"} Admin Home|	
+								%a{ :href => "/help"} Help|									 
+								%a{ :href => "/logout"} Logout
+							- else
+								%a{ :href => "/auth/crowd"}
+									Login 
+								to retrieve your api-token
+					%ul
+						%li
+							%p
+								%h2 #{current_user.name}
+						%li																													
+							%h3 
+								Nagios Host Groups:
+							#{current_user.host_groups}
+						%li
+							%h3
+								Your token: 
+							%h3{ :class => 'plain' }
+								#{current_user.token}
+							%h3
+								Your token is #{current_user.revoked ? 'revoked' : 'valid' }!

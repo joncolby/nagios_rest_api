@@ -9,13 +9,13 @@ module NagiosRestApi
     
     timestamps :at    
     property :id, Serial, :key => true
-    property :uid, String, :required => true 
-    property :name, String, :required => true 
+    property :uid, Integer, :unique => true, :required => true 
+    property :name, String, :unique => true, :required => true 
     property :token, String, :required => true, :length => 40, :unique => true, :default => proc { generate_token }
     property :host_groups, String, :required => true, :default  => 'NONE'
     property :revoked, Boolean, :default  => false
     property :locked, Boolean, :default => false
-
+    
     def self.generate_token
       sha1 = Digest::SHA1.new  
       256.times { sha1 << rand(256).chr }
