@@ -19,7 +19,7 @@ module NagiosRestApi
       uri = URI.parse(base_url)
       @http = Net::HTTP.new(uri.host, uri.port)
       @http.open_timeout = 10
-      @http.read_timeout = 10
+      @http.read_timeout = 300
       @http.use_ssl = (uri.scheme == 'https')
       @http.verify_mode = OpenSSL::SSL::VERIFY_NONE if (uri.scheme == 'https')
       @cookiejar = PStore.new('groundworks-cookie.pstore')

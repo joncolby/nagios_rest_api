@@ -63,9 +63,6 @@ class RestApi < Sinatra::Application
      set :session_secret, 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a'    
      set :public_folder, 'public'    
      set :admin_groups, @config[:crowd_admin_groups].map(&:to_sym)
-     #set :crowd_server_url, @config[:crowd_server_url]
-     #set :crowd_application_name, @config[:crowd_application_name]
-     #set :crowd_application_password, @config[:crowd_application_password]
 
      # logging settings
      enable :logging
@@ -180,7 +177,7 @@ class RestApi < Sinatra::Application
     
     #OAUTH
     get '/auth/crowd' do 
-      # TODO: REMOVE AFTER TESTING !!
+      # BELOW IS FOR TESTING ONLY !!
       #redirect '/auth/crowd/callback'
     end
     
