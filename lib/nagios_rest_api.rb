@@ -27,7 +27,7 @@ class RestApi < Sinatra::Application
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
   end 
-  
+
   OmniAuth.config.on_failure = Proc.new { |env|
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
@@ -63,7 +63,7 @@ class RestApi < Sinatra::Application
      set :session_secret, 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a'    
      set :public_folder, 'public'    
      set :admin_groups, @config[:crowd_admin_groups].map(&:to_sym)
-
+       
      # logging settings
      enable :logging
      log_dir = File.expand_path("../../log",__FILE__)
@@ -86,7 +86,7 @@ class RestApi < Sinatra::Application
     end
  
   end
-
+ 
     not_found do
       halt 404, { :message => "Action #{request.path_info} is not supported" }.to_json
     end

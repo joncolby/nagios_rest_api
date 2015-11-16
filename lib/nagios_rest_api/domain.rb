@@ -1,8 +1,9 @@
 require 'data_mapper'
 require 'dm-timestamps'
 
-DataMapper::setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/nagios_rest_api.db")
-
+# setup database
+DataMapper::setup(:default, ENV['DATABASE_URL'] || "sqlite3:///var/lib/nagios_rest_api/nagios_rest_api.db")
+  
 module NagiosRestApi
   class User
     include DataMapper::Resource

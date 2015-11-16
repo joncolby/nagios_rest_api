@@ -12,6 +12,3 @@ crowd_admin_groups:
   - group1
   - group2
   - group3
-crowd_server_url: "https://crowd.mydomain.com"
-crowd_application_name: "nagios-rest-api"
-crowd_application_password: "123456789"
