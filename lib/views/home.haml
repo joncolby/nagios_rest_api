@@ -84,36 +84,36 @@
 							%li 
 								Get a list of all hosts in Nagios (takes ~5 seconds)
 								%pre
-									curl -o - -H "access_token: myapitoken" #{settings.api_url}:#{settings.port}/hosts
+									curl -o - -H "access_token: myapitoken" #{settings.api_url}/hosts
 							%li
 								Get detailed status information about host and service running on 'myhostname' (takes ~20 seconds)
 								%pre
-									curl -o -  -H "access_token: myapitoken" #{settings.api_url}:#{settings.port}/hosts/myhostname
+									curl -o -  -H "access_token: myapitoken" #{settings.api_url}/hosts/myhostname
 							%li
 								Find all hosts matching pattern *ghei* (depending on shell, you may need to quote the url when running on the command line)</b>
 								%pre
-									curl -o -  -H "access_token: myapitoken" '#{settings.api_url}:#{settings.port}/hosts/find/*web*'
+									curl -o -  -H "access_token: myapitoken" '#{settings.api_url}/hosts/find/*web*'
 							%li
 								Set 10 minutes of downtime for service 'swap_utilisation' on host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d service=swap_utilisation -d duration=10 #{settings.api_url}:#{settings.port}/hosts/myhostname/downtime
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=swap_utilisation -d duration=10 #{settings.api_url}/hosts/myhostname/downtime
 							%li
 								Set 60 minutes of downtime for host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d duration=60 #{settings.api_url}:#{settings.port}/hosts/myhostname/downtime
+									curl -o -  -H "access_token: myapitoken" -X PUT -d duration=60 #{settings.api_url}/hosts/myhostname/downtime
 							%li
 								Remove downtime for host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT  #{settings.api_url}:#{settings.port}/hosts/myhostname/nodowntime
+									curl -o -  -H "access_token: myapitoken" -X PUT  #{settings.api_url}/hosts/myhostname/nodowntime
 							%li
 								Acknowledge 'disk_utilization' service problem 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation #{settings.api_url}:#{settings.port}/hosts/myhostname/ack
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation #{settings.api_url}/hosts/myhostname/ack
 							%li
 								Remove acknowledgement for 'disk_utilization' service problem 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation  #{settings.api_url}:#{settings.port}/hosts/myhostname/unack
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=disk_utilisation  #{settings.api_url}/hosts/myhostname/unack
 							%li
 								Disable notifications for host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT #{settings.api_url}:#{settings.port}/hosts/myhostname/disable
+									curl -o -  -H "access_token: myapitoken" -X PUT #{settings.api_url}/hosts/myhostname/disable
