@@ -44,7 +44,7 @@ class RestApi < Sinatra::Application
       end
      
       begin
-        @client = NagiosRestApi::Client.new(@config[:nagios_url], { :username => @config[:username], :password => @config[:password], :groundworks => @config[:use_groundworks_auth], :date_format => @config[:date_format] })  
+        @client = NagiosRestApi::Client.new(@config[:nagios_url], { :username => @config[:nagios_username], :password => @config[:nagios_password], :groundworks => @config[:use_groundworks_auth], :date_format => @config[:date_format] })  
         # do a test connection
         response = @client.api.get('/nagios/cgi-bin/tac.cgi')
       rescue Exception => e

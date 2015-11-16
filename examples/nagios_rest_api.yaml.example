@@ -1,7 +1,7 @@
 ---
 # EXAMPLE CONFIG FILE
-username: USER
-password: PASSWORD
+nagios_username: USER
+nagios_password: PASSWORD
 nagios_url: "https://nagios.mydomain.com"
 use_groundworks_auth: true
 date_format: eu # or us
