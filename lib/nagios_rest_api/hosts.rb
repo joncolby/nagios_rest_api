@@ -126,7 +126,7 @@ module NagiosRestApi
     # post to nagios   
     def acknowledge(opts={})
       comment = opts[:comment] || 'acknowledgement set by '
-      comment << opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
+      comment << "#{opts[:current_user]} via nagios api" if opts[:current_user] or 'nagios api'
       sticky = opts[:sticky] || true 
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, com_author: 'nagios rest api', cmd_typ: '33', cmd_mod: '2', sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Host #{@name} has been acknowledged", code: response.code }) if response.is_a? Net::HTTPSuccess
@@ -143,7 +143,7 @@ module NagiosRestApi
     def downtime(opts = {})
       duration_minutes = opts[:minutes] || 60
       comment = opts[:comment] || 'downtime set by '
-      comment << opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
+      comment << "#{opts[:current_user]} via nagios api" if opts[:current_user] or 'nagios api'
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
