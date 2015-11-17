@@ -3,6 +3,7 @@ require 'sinatra/json'
 require 'json'
 require 'yaml'
 require 'haml'
+require 'logger'
 require 'tilt/haml'
 require 'rack-flash'
 require 'omniauth_crowd'
@@ -32,26 +33,39 @@ class RestApi < Sinatra::Application
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
   
-  configure do
-    @config ||= NagiosRestApi::Helpers.load_config
-
-      set(:auth) do |*groups|
-        condition do     
-          unless logged_in? && !(groups & session[:groups]).empty?
-            redirect '/unauthorized'
-          end
+  TEN_MB = 10490000
+  Logger.class_eval { alias :write :<< }
+  log_dir = File.expand_path("../../log",__FILE__)
+  Dir.mkdir log_dir unless File.exists? log_dir
+  app_log = File.join(log_dir, 'application.log' )
+  # application log
+  $logger = Logger.new(app_log, 10, TEN_MB) 
+  # access traffic log 
+  use Rack::CommonLogger, Logger.new(File.join(log_dir, 'access.log' ), 5, TEN_MB)
+  # log any unexpected stderr messages
+  $error_logger = File.new(File.join(log_dir, 'error.log'), 'a+' )
+  $error_logger.sync = true
+  
+  configure do        
+     @config ||= NagiosRestApi::Helpers.load_config
+    
+     set(:auth) do |*groups|
+      condition do     
+        unless logged_in? && !(groups & session[:groups]).empty?
+          redirect '/unauthorized'
         end
       end
+     end
      
-      begin
-        @client = NagiosRestApi::Client.new(@config[:nagios_url], { :username => @config[:nagios_username], :password => @config[:nagios_password], :groundworks => @config[:use_groundworks_auth], :date_format => @config[:date_format] })  
-        # do a test connection
-        response = @client.api.get('/nagios/cgi-bin/tac.cgi')
-      rescue Exception => e
-        raise "Problem with connecting to Nagios: #{e.message}"
-      end  
-      
-      raise "Problem authenticating to Nagios: #{response.message} (#{response.code})" unless response.instance_of? Net::HTTPOK
+     begin
+      @client = NagiosRestApi::Client.new(@config[:nagios_url], { :username => @config[:nagios_username], :password => @config[:nagios_password], :groundworks => @config[:use_groundworks_auth], :date_format => @config[:date_format] })  
+      # do a test connection
+      response = @client.api.get('/nagios/cgi-bin/tac.cgi')
+     rescue Exception => e
+      raise "Problem with connecting to Nagios: #{e.message}"
+     end  
+    
+     raise "Problem authenticating to Nagios: #{response.message} (#{response.code})" unless response.instance_of? Net::HTTPOK
       
      set :show_exceptions, true 
      set :client, @client
@@ -66,24 +80,24 @@ class RestApi < Sinatra::Application
        
      # logging settings
      enable :logging
-     log_dir = File.expand_path("../../log",__FILE__)
-     Dir.mkdir log_dir unless File.exists? log_dir
-     file = File.new("#{log_dir}/#{settings.environment}.log", 'a+')
-     file.sync = true
+     # use custom logger
+     set :logging, nil
+    
+     # For apache-style request logging use CommonLogger     
+     #use Rack::CommonLogger, access_log    
      
-     use Rack::CommonLogger, file
      use Rack::Flash
      use Rack::Session::Cookie, 
         :session_secret  => 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a',
-        :expire_after => 14400 # In seconds
+      :expire_after => 14400 # In seconds
         
-    set(:auth) do |*groups|
+     set(:auth) do |*groups|
       condition do
         unless logged_in? && !(groups & session[:groups]).empty?
           redirect '/unauthorized'
         end
       end
-    end
+     end
  
   end
  
@@ -92,7 +106,9 @@ class RestApi < Sinatra::Application
     end
     
     before do
-      cache_control :private, :no_cache, :no_store, :must_revalidate         
+      cache_control :private, :no_cache, :no_store, :must_revalidate   
+      env['rack.logger'] = $logger
+      env['rack.errors'] = $error_logger      
     end
     
     ['/', '/help', '/usage'].each do |route|
@@ -212,7 +228,7 @@ class RestApi < Sinatra::Application
 
       unless @user.errors.empty?
         error_msg = @user.errors.map { |e| "#{e.join(', ')}" }.join("; ")
-        puts error_msg
+        logger.error error_msg
         flash[:error] = error_msg
         redirect '/error' 
       end
@@ -253,7 +269,7 @@ class RestApi < Sinatra::Application
       @user = NagiosRestApi::User.get params[:id]
       name = @user.name if @user
       @user.destroy or redirect '/error'
-      puts "user #{@user.name} was deleted"
+      logger.info "user #{@user.name} was deleted"
       flash[:error] = "User #{name} has been deleted"
       redirect '/admin'
     end
