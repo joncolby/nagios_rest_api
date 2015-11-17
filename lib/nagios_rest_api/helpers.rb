@@ -80,6 +80,7 @@ module NagiosRestApi
     end
     
     def process_request(method,params={})
+      params[:current_user] = current_user.name if current_user
       host = host params[:hostname]
       if params[:service] 
         if host.has_service? params[:service]
