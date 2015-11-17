@@ -16,7 +16,7 @@
 							- else
 								%a{ :href => "/auth/crowd"}
 									Login 
-								to retrieve your api-token
+								to retrieve your API Token
 					%ul
 						%li
 							%p
@@ -27,8 +27,8 @@
 							#{current_user.host_groups}
 						%li
 							%h3
-								Your token: 
+								Your API Token: 
 							%h3{ :class => 'plain' }
 								#{current_user.token}
 							%h3
-								Your token is #{current_user.revoked ? 'revoked' : 'valid' }!
+								Your API Token is #{current_user.revoked ? 'revoked' : 'valid' }!

@@ -45,7 +45,7 @@
 								%td PUT
 								%td /hosts/<b>hostname</b>/downtime
 								%td set downtime
-								%td service=(service name), duration=(minutes, default: 60)
+								%td service=(service name), minutes=(duration in minutes, default: 60)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/nodowntime
@@ -96,11 +96,11 @@
 							%li
 								Set 10 minutes of downtime for service 'swap_utilisation' on host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d service=swap_utilisation -d duration=10 #{settings.api_url}/hosts/myhostname/downtime
+									curl -o -  -H "access_token: myapitoken" -X PUT -d service=swap_utilisation -d minutes=10 #{settings.api_url}/hosts/myhostname/downtime
 							%li
 								Set 60 minutes of downtime for host 'myhostname'
 								%pre
-									curl -o -  -H "access_token: myapitoken" -X PUT -d duration=60 #{settings.api_url}/hosts/myhostname/downtime
+									curl -o -  -H "access_token: myapitoken" -X PUT -d minutes=60 #{settings.api_url}/hosts/myhostname/downtime
 							%li
 								Remove downtime for host 'myhostname'
 								%pre
