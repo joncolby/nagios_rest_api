@@ -35,29 +35,31 @@ module NagiosRestApi
       host = NagiosRestApi::Host.new(name, { api_client: settings.client })
       h = host.info.to_h
       #return nil unless h[:last_check]
-      halt 400, j_({'message' => "Hostname #{name} not found"}) unless h[:last_check]
+      halt 400, j_({ :message => "Host #{name} does not exist." }) unless h[:last_check]
       return host
     end
     
     def authorized_host?(hostname)
       return false unless valid_api_request? 
       user_host_groups = hostgroups_to_a(current_user.host_groups)
-      return true if user_host_groups.include? 'ANY' 
+      return true if user_host_groups.include? 'ALL' 
       return false if user_host_groups.include? 'NONE' 
       return authorized_hosts.any? { |h| h.name.upcase == hostname.upcase }      
     end
 
     def authorized_hosts
-      user_host_groups = current_user.host_groups
       client = settings.client
-      @authorized_hosts = Array.new
-      hostgroups_to_a(user_host_groups).each do |host_group|
-        hg = NagiosRestApi::HostGroup.new(host_group,{ api_client: settings.client })
+      user_host_groups = hostgroups_to_a(current_user.host_groups)
+      return [] if user_host_groups.include? 'NONE'
+      return client.hosts.all if user_host_groups.include? 'ALL'
+      authorized_hosts = Array.new
+      user_host_groups.each do |host_group|
+        hg = NagiosRestApi::HostGroup.new(host_group,{ api_client: client })
         members = hg.members
         next unless members
-        @authorized_hosts.push(*members)        
+        authorized_hosts.push(*members)        
       end
-      @authorized_hosts.uniq { |h| h.name }
+      authorized_hosts.uniq { |h| h.name }
     end
         
     def j_(hash_data)

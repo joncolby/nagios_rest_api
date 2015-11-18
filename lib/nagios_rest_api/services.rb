@@ -59,7 +59,8 @@ module NagiosRestApi
     def downtime(opts={})
       duration_minutes = opts[:minutes] || 60
       comment = opts[:comment] || 'downtime set by '
-      comment << "#{opts[:current_user]} via nagios api" if opts[:current_user] or 'nagios api'
+      user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
+      comment << user
       t = Time.new
       localtime = t.localtime
       duration = localtime + duration_minutes * 60
@@ -81,7 +82,8 @@ module NagiosRestApi
     
     def acknowledge(opts={})
       comment = opts[:comment] || 'acknowledgement set by '
-      comment << "#{opts[:current_user]} via nagios api" if opts[:current_user] or 'nagios api'
+      user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
+      comment << user
       sticky = opts[:sticky] || true 
       service = CGI::unescape @name
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, cmd_typ: '34', cmd_mod: '2', service: service, sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })

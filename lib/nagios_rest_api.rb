@@ -121,28 +121,31 @@ class RestApi < Sinatra::Application
     get '/hosts/find/?:hostname?' do
       valid_api_request? or unauthorized
       halt 400, { :message => 'Missing host find pattern' }.to_json unless params[:hostname]  
-      j_ :hosts => settings.client.hosts.find(params[:hostname])   
+      found_host_names = settings.client.hosts.find(params[:hostname]).collect { |h| h.name }
+      authorized_host_names = authorized_hosts.collect { |h| h.name }
+      j_ :hosts => (found_host_names & authorized_host_names)
     end
 
     # show all hosts
     get '/hosts/?' do
       valid_api_request? or unauthorized
-      j_ :hosts => settings.client.hosts.all.collect { |h| h.name }
+      j_ :hosts => authorized_hosts.collect { |h| h.name }
     end
 
     # status of a host
     get '/hosts/:hostname/?' do
       valid_api_request? or unauthorized
       host = host params[:hostname]
-      halt 400, { :message => "Host #{params[:hostname]} does not exist. Hint: Nagios host names are case-sensitive." }.to_json unless host
+      authorized_host? params[:hostname] or unauthorized 
       h = host.to_h
       services = host.services.collect { |s| s.info.to_h }
-      j_ h.merge({ :services => services })       
+      j_ h.merge({ :services => services })     
     end
         
     # downtime
     put '/hosts/:hostname/downtime' do  
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60      
       process_request :downtime, params
     end
@@ -150,30 +153,35 @@ class RestApi < Sinatra::Application
     # nodowntime
     put '/hosts/:hostname/nodowntime' do
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       process_request :cancel_downtime, params      
     end
     
     # acknowledge
     put '/hosts/:hostname/ack' do
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       process_request :acknowledge, params    
     end
 
     # unacknowledge
     put '/hosts/:hostname/unack' do
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       process_request :remove_acknowledgement, params    
     end
     
     # enable notifications
     put '/hosts/:hostname/disable' do
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       process_request :disable_notifications, params
     end
     
     # disable notifications
     put '/hosts/:hostname/enable' do
       valid_api_request? or unauthorized
+      authorized_host? params[:hostname] or unauthorized 
       process_request :enable_notifications, params
     end  
     
@@ -191,10 +199,8 @@ class RestApi < Sinatra::Application
       redirect '/'
     end
     
-    #OAUTH
+    #OAUTH AUTH CALL
     get '/auth/crowd' do 
-      # BELOW IS FOR TESTING ONLY !!
-      #redirect '/auth/crowd/callback'
     end
     
     #OAUTH FAILURE
@@ -203,7 +209,7 @@ class RestApi < Sinatra::Application
       haml :error
     end
     
-    #OAUTH
+    #OAUTH CALLBACK
     get '/auth/crowd/callback' do
       auth = request.env['omniauth.auth']
       
