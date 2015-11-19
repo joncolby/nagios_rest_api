@@ -25,7 +25,8 @@
 							%li																													
 								%h3 
 									Nagios Host Groups
-								%textarea{:name => "user[host_groups]", :type => "textarea", :rows => "4", :cols => "100", :value => "#{@user.host_groups if @user}"}
+								%textarea{:name => "user[host_groups]", :type => "textarea", :rows => "4", :cols => "100" }
+									#{@user.host_groups if @user}
 								%p											
 									Comma-separated list of allowed Nagios Host Groups.
 									%br Example:  WEB1, DATABASES, BACKEND_HOSTS
