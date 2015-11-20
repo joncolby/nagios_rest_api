@@ -3,4 +3,5 @@ TODO AND NEW FEATURE LIST:
 - DONE fix logging
 - DONE find all hosts in hostgroup
 - DONE hostgroup authorization
-- form-based actions for browser users  
+- form-based actions for browser users
+- application audit info log  

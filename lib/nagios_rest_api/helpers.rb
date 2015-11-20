@@ -67,7 +67,7 @@ module NagiosRestApi
     end  
     
     def unauthorized
-      halt 401, { :message => 'Unauthorized' }.to_json
+      redirect '/unauthorized'
     end
 
     def valid_token?

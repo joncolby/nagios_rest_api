@@ -190,7 +190,7 @@ class RestApi < Sinatra::Application
     end
     
     get '/unauthorized' do
-      unauthorized
+      halt 401, { :message => 'Unauthorized' }.to_json
     end
     
     # logout
