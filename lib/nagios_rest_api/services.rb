@@ -52,8 +52,8 @@ module NagiosRestApi
         response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { cmd_typ: '79', cmd_mod: '2', down_id: down_id, btnSubmit: 'Commit' })
         response_success false if !response.is_a? Net::HTTPSuccess
       end
-    return OpenStruct.new({message: "Downtime for service \'#{@name}\' on #{@host} has been removed"}) if response_success
-    return OpenStruct.new({message: "Problem encountered removing downtime for service \'#{@name}\' on #{@host}"}) if !response_success
+  return OpenStruct.new({message: "Downtime for service \'#{@name}\' on #{@host} has been removed", code: response.code}) if response_success
+return OpenStruct.new({message: "Problem encountered removing downtime for service \'#{@name}\' on #{@host}", code: response.code}) if !response_success
     end
 
     def downtime(opts={})

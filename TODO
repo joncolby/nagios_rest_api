@@ -4,4 +4,11 @@ TODO AND NEW FEATURE LIST:
 - DONE find all hosts in hostgroup
 - DONE hostgroup authorization
 - form-based actions for browser users
-- application audit info log  
+- DONE application audit info log
+
+- DONE services=all actions
+- hostgroup lookup
+- hostgroup actions
+- json mime type 
+- append comment
+- user may lock/regenerate api-token 

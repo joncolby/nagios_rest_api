@@ -61,6 +61,10 @@ module NagiosRestApi
       end
       authorized_hosts.uniq { |h| h.name }
     end
+    
+    #TODO
+    def authorized_hostgroup?(hostgroup)
+    end
         
     def j_(hash_data)
       JSON.pretty_generate(hash_data)
@@ -81,16 +85,29 @@ module NagiosRestApi
       current_user || valid_token?
     end
     
+    def params_to_s(params)
+      params.map{|k,v| "#{k}=#{v}"}.join(',')
+    end
+    
     def process_request(method,params={})
+      logger.info "#{current_user.name} #{current_user.token} #{request.path_info} #{params_to_s(params)}"
       params[:current_user] = current_user.name if current_user
       host = host params[:hostname]
       if params[:service] 
-        if host.has_service? params[:service]
-          s = host.get_service(params[:service])
-          response = s.send(method,params)
-          j_ response.to_h
-        else
-          halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
+          # if 'service=all' was specified, loop over all hosts' services
+          if params[:service].upcase == 'ALL'
+              services =  host.services         
+              services.each do |svc| 
+                  response = svc.send(method,params)
+                  halt 400, j_({ :message => "could not set #{method} for service #{svc.name} on host #{host.name}"}) if response.code.to_i != 200
+              end  
+              j_({ :message => "#{method} for all services on host #{host.name} was successful"})     
+          elsif host.has_service? params[:service]
+            svc = host.get_service(params[:service])
+            response = svc.send(method,params)
+            j_ response.to_h
+            else
+            halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
         end
       else
         response = host.send(method, params)

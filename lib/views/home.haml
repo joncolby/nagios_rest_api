@@ -45,36 +45,37 @@
 								%td PUT
 								%td /hosts/<b>hostname</b>/downtime
 								%td set downtime
-								%td service=(service name), minutes=(duration in minutes, default: 60)
+								%td service=(service name|all), minutes=(duration in minutes, default: 60)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/nodowntime
 								%td remove downtime
-								%td service=(service name)
+								%td service=(service name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/ack
 								%td set acknowledgement
-								%td service=(service name)
+								%td service=(service name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/unack
 								%td unset acknowledgement
-								%td service=(service name)
+								%td service=(service name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/enable
 								%td enable notifications
-								%td service=(service name)
+								%td service=(service name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/disable
 								%td disable notifications
-								%td service=(service name)
+								%td service=(service name|all)
 						%h2
 							Notes
 						%ul
 							%li - For PUT actions, if no 'service' parameter is supplied, action will be applied to HOST
+							%li - service parameter can take the value 'all', which will cause the operation to be applied to all services on the host
 							%li - API calls can be made using an api-token. login to retrieve your api-token.
 							%li - If there is a space in the service name, you can use '+'.  Example:  service=Swap+Usage</
 							
