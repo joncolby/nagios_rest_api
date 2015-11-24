@@ -71,7 +71,7 @@ module NagiosRestApi
     end  
     
     def unauthorized
-      redirect '/unauthorized'
+      redirect to('/unauthorized')
     end
 
     def valid_token?
