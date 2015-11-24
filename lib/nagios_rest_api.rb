@@ -24,7 +24,7 @@ class RestApi < Sinatra::Application
   end
   
   helpers NagiosRestApi::Helpers
-=begin
+  
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
   end 
@@ -32,7 +32,7 @@ class RestApi < Sinatra::Application
   OmniAuth.config.on_failure = Proc.new { |env|
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
-=end  
+ 
   TEN_MB = 10490000
   Logger.class_eval { alias :write :<< }
   log_dir = File.expand_path("../../log",__FILE__)
@@ -217,14 +217,14 @@ class RestApi < Sinatra::Application
       #auth.each_pair { |k,v| puts "AUTH_HASH: #{k}=>#{v}" } if auth
         
       ### TESTING OFFLINE - FAKE RETURN HASH
-     
+=begin     
       auth = {
         'uid' => 'jonathan.colby',
         'info' => { 'name'    => 'Jonathan Colby',
                     'groups'  => ["confluence-administrators", "confluence-users","operating",  "stash-administrators", "stash-users", "um", "um-16", "um-47", "umcommunicator"]
                   }    
       }
-
+=end
 
       @user = NagiosRestApi::User.first_or_create({ :uid => auth['uid']}, {
         :name => auth['info']['name']
