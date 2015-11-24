@@ -71,7 +71,7 @@ module NagiosRestApi
     end  
     
     def unauthorized
-      redirect to('/unauthorized')
+      halt 401, { :message => 'Unauthorized' }.to_json
     end
 
     def valid_token?
@@ -96,12 +96,14 @@ module NagiosRestApi
       if params[:service] 
           # if 'service=all' was specified, loop over all hosts' services
           if params[:service].upcase == 'ALL'
-              services =  host.services         
+              services =  host.services
+              svcs = []
               services.each do |svc| 
                   response = svc.send(method,params)
                   halt 400, j_({ :message => "could not set #{method} for service #{svc.name} on host #{host.name}"}) if response.code.to_i != 200
+                  svcs << svc.name
               end  
-              j_({ :message => "#{method} for all services on host #{host.name} was successful"})     
+              j_({ :message => "#{method} applied for services #{svcs.join(',')} on host #{host.name}"})
           elsif host.has_service? params[:service]
             svc = host.get_service(params[:service])
             response = svc.send(method,params)

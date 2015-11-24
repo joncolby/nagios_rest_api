@@ -190,7 +190,7 @@ class RestApi < Sinatra::Application
     end
     
     get '/unauthorized' do
-      halt 401, { :message => 'Unauthorized' }.to_json
+      unauthorized
     end
     
     # logout
@@ -318,6 +318,7 @@ class RestApi < Sinatra::Application
       u = NagiosRestApi::User.get params[:id]      
       u.update({ 
         :name => params[:user][:name],
+        :uid => params[:user][:name].gsub(/\s+/, '.').downcase,
         :host_groups => parse_hostgroups(params[:user][:host_groups]),
         :locked => params[:user][:locked] == "on" ? true : false,
         :revoked => params[:user][:revoked] == "on" ? true : false

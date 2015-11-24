@@ -13,3 +13,5 @@ TODO AND NEW FEATURE LIST:
 - append comment
 - user may lock/regenerate api-token 
 - services all report list of services affected
+- DONE fix unauthorized redirect
+- DONE update user uid when updating user name
