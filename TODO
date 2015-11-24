@@ -3,15 +3,16 @@ TODO AND NEW FEATURE LIST:
 - DONE fix logging
 - DONE find all hosts in hostgroup
 - DONE hostgroup authorization
-- form-based actions for browser users
 - DONE application audit info log
-
 - DONE services=all actions
+- DONE fix unauthorized redirect
+- DONE update user uid when updating user name
+
 - hostgroup lookup
+- form-based actions for browser users
 - hostgroup actions
 - json mime type 
 - append comment
 - user may lock/regenerate api-token 
 - services all report list of services affected
-- DONE fix unauthorized redirect
-- DONE update user uid when updating user name
+- description field for user domain
