@@ -18,8 +18,9 @@ module NagiosRestApi
       @date_format = options[:date_format]        
       uri = URI.parse(base_url)
       @http = Net::HTTP.new(uri.host, uri.port)
-      @http.open_timeout = 10
+      @http.open_timeout = 60
       @http.read_timeout = 300
+      @http.keep_alive_timeout = 60
       @http.use_ssl = (uri.scheme == 'https')
       @http.verify_mode = OpenSSL::SSL::VERIFY_NONE if (uri.scheme == 'https')
       @cookiejar = PStore.new('groundworks-cookie.pstore')
@@ -84,8 +85,8 @@ module NagiosRestApi
         response = @http.start do |http|          
               http.request(request)
         end  
-      rescue Net::OpenTimeout => e
-          raise "timeout connecting to nagios at #{@base_url}"
+      rescue Timeout::Error => e
+          raise "timeout error (#{e.class}) with url #{@base_url}: #{e.message}"
       end
 
       cookie = set_cookie [response['set-cookie'], get_cookie].join(';')

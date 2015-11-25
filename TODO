@@ -18,3 +18,5 @@ TODO AND NEW FEATURE LIST:
 - append comment
 - user may lock/regenerate api-token
 - fix json output for hostgroup functions
+- increase timeout to gw
+- null exception 
