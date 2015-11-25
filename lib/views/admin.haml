@@ -25,7 +25,9 @@
 							%li
 								API Token: <b>#{user.token}</b>	
 							%li
-								Account Status: <b>#{user.locked ? 'LOCKED' : 'ACTIVE'}</b>, Token Status: <b>#{user.revoked ? 'REVOKED' : 'VALID'}</b>
+								Description: #{user.description}
+							%li
+								Token Status: <b>#{user.revoked ? 'REVOKED' : 'VALID'}</b>
 							%li
 								Nagios Host Groups: <b>#{user.host_groups}</b>	
 							%li

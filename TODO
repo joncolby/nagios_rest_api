@@ -7,12 +7,13 @@ TODO AND NEW FEATURE LIST:
 - DONE services=all actions
 - DONE fix unauthorized redirect
 - DONE update user uid when updating user name
-
-- hostgroup lookup
+- DONE description field for user domain
+- DONE services all report list of services affected
+- DONE hostgroup lookup
 - form-based actions for browser users
 - hostgroup actions
+	- DONE view hostgroups (authorized)
+	- DONE view hosts in hostgroup (authorized)
 - json mime type 
 - append comment
-- user may lock/regenerate api-token 
-- services all report list of services affected
-- description field for user domain
+- user may lock/regenerate api-token

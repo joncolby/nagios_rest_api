@@ -30,6 +30,14 @@ module NagiosRestApi
       @members = Array.new
     end 
     
+    def eql? other
+      other.kind_of?(self.class) && @name == other.name
+    end
+    
+    def hash
+      @name.hash
+    end
+    
     def members
       response = api_client.api.get("/nagios/cgi-bin/status.cgi", { hostgroup: @name, style: 'overview'  })
       err = %r{doesn't seem to exist}

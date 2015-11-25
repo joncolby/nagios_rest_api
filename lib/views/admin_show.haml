@@ -24,7 +24,9 @@
 								#{@user.host_groups}
 							%li
 								%h3
-									account is #{@user.locked ? '' : 'not' } locked 
+									Description
+								%p
+									#{@user.description} 
 							%li
 								%h3
 									token is #{@user.revoked ? 'revoked' : 'valid' }

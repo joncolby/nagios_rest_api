@@ -62,8 +62,34 @@ module NagiosRestApi
       authorized_hosts.uniq { |h| h.name }
     end
     
-    #TODO
     def authorized_hostgroup?(hostgroup)
+      authorized_hostgroups.collect { |hg| hg.name }.include? hostgroup
+    end
+    
+    def authorized_hostgroups
+      client = settings.client
+      user_host_groups = hostgroups_to_a(current_user.host_groups)
+      return client.hostgroups.all if user_host_groups.include? 'ALL'
+      return [] if user_host_groups.include? 'NONE'
+      host_groups = user_host_groups.collect do |group| 
+        NagiosRestApi::HostGroup.new(group,{ api_client: client })
+      end
+      return client.hostgroups.all & host_groups
+    end
+    
+    def hostgroups_to_a(group_as_string)
+      group_as_string.split(',').collect{ |g| g.gsub(/\s+/, "") }
+    end
+  
+    def parse_hostgroups(groups)
+      groups_list = groups.split(',').collect{ |g| g.gsub(/\s+/, "") }
+      if groups_list.include?('NONE')
+        return 'NONE' 
+      elsif groups_list.include?('ALL')
+        return 'ALL'
+      else
+        return groups_list.join(',')
+      end  
     end
         
     def j_(hash_data)
@@ -82,7 +108,11 @@ module NagiosRestApi
     end
     
     def valid_api_request?
-      current_user || valid_token?
+      if request.env["HTTP_ACCESS_TOKEN"]
+        valid_token?
+      else
+        current_user
+      end
     end
     
     def params_to_s(params)
@@ -115,22 +145,7 @@ module NagiosRestApi
         response = host.send(method, params)
         j_ response.to_h
       end
-    end
-    
-    def hostgroups_to_a(group_as_string)
-      group_as_string.split(',').collect{ |g| g.gsub(/\s+/, "") }
-    end
-    
-    def parse_hostgroups(groups)
-        groups_list = groups.split(',').collect{ |g| g.gsub(/\s+/, "") }
-        if groups_list.include?('NONE')
-          return 'NONE' 
-        elsif groups_list.include?('ALL')
-          return 'ALL'
-        else
-          return groups_list.join(',')
-        end  
-    end
+    end    
     
     def current_user
       logged_in_user = NagiosRestApi::User.get(session[:user_id]) if session[:user_id]

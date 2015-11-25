@@ -24,7 +24,7 @@ class RestApi < Sinatra::Application
   end
   
   helpers NagiosRestApi::Helpers
-  
+#=begin  
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
   end 
@@ -32,7 +32,7 @@ class RestApi < Sinatra::Application
   OmniAuth.config.on_failure = Proc.new { |env|
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
- 
+#=end 
   TEN_MB = 10490000
   Logger.class_eval { alias :write :<< }
   log_dir = File.expand_path("../../log",__FILE__)
@@ -82,10 +82,7 @@ class RestApi < Sinatra::Application
      enable :logging
      # use custom logger
      set :logging, nil
-    
-     # For apache-style request logging use CommonLogger     
-     #use Rack::CommonLogger, access_log    
-     
+        
      use Rack::Flash
      use Rack::Session::Cookie, 
         :session_secret  => 'a77401a3da077a8e3f13e6d26ac6b37a54942b4a',
@@ -184,6 +181,20 @@ class RestApi < Sinatra::Application
       authorized_host? params[:hostname] or unauthorized 
       process_request :enable_notifications, params
     end  
+    
+    # show hostgroup(s), only those allowed though
+    get '/hostgroups/?' do
+      valid_api_request? or unauthorized
+      j_ :hostgroups => authorized_hostgroups.collect {|h| h.name }
+    end
+    
+    # show all hosts in the hostgroup
+    get '/hostgroups/:hostgroup/?' do
+      valid_api_request? or unauthorized
+      authorized_hostgroup? params[:hostgroup] or unauthorized
+      host_group = NagiosRestApi::HostGroup.new(params[:hostgroup],{ api_client: settings.client })
+      j_ :hostgroups => host_group.members.collect { |h| h.name }
+    end
     
     post '/slack' do
       halt 501, "Not implemented"
@@ -296,7 +307,7 @@ class RestApi < Sinatra::Application
       @user = NagiosRestApi::User.new      
       @user.name = params[:user][:name]
       @user.uid = @user.name.gsub(/\s+/, '.').downcase
-      @user.locked = params[:user][:locked] == "on" ? true : false
+      @user.description = params[:user][:description]
       @user.revoked = params[:user][:revoked] == "on" ? true : false
       @user.host_groups = parse_hostgroups(params[:user][:host_groups])
       if @user.save
@@ -320,7 +331,7 @@ class RestApi < Sinatra::Application
         :name => params[:user][:name],
         :uid => params[:user][:name].gsub(/\s+/, '.').downcase,
         :host_groups => parse_hostgroups(params[:user][:host_groups]),
-        :locked => params[:user][:locked] == "on" ? true : false,
+        :description => params[:user][:description],
         :revoked => params[:user][:revoked] == "on" ? true : false
         })
       if u.save

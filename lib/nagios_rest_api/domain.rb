@@ -13,6 +13,7 @@ module NagiosRestApi
     property :uid, String, :unique => true, :required => true
     property :name, String, :unique => true, :required => true 
     property :token, String, :required => true, :length => 40, :unique => true, :default => proc { generate_token }
+    property :description, String, :required => false, :length => 1275
     property :host_groups, String, :required => true, :length => 1275, :default  => 'NONE'
     property :revoked, Boolean, :default  => false
     property :locked, Boolean, :default => false

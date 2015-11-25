@@ -35,7 +35,8 @@
 											<b>ALL</b> or <b>NONE</b> keywords can also be used
 									%li
 										%h3
-											%input{:type => "checkbox", :name => "user[locked]", :checked => !!@user.locked } lock account (if locked, user will not be able to login)
+											Description
+										%textarea{ :name => "user[description]",  :type => "textarea", :rows => "4", :cols => "100" }
 									%li
 										%h3
 											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token (if revoked, user cannot make api calls with token)
