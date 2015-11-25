@@ -17,3 +17,4 @@ TODO AND NEW FEATURE LIST:
 - json mime type 
 - append comment
 - user may lock/regenerate api-token
+- fix json output for hostgroup functions
