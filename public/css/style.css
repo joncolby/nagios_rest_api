@@ -7,9 +7,9 @@ html {
 	padding: 0;
 	}
 body { 
-	font: 75% georgia, sans-serif;
+	font: 85% georgia, sans-serif;
 	line-height: 1.88889;
-	color: #555753; 
+	color: #000000; 
 	background: #fff;
 	margin: 0; 
 	padding: 0;
@@ -22,7 +22,7 @@ h3 {
 	font: italic normal 1.4em georgia, sans-serif;
 	letter-spacing: 1px; 
 	margin-bottom: 0; 
-	color: #7D775C;
+	color: #006600;
 	}
 .plain {
 	font: normal 1.4em georgia, sans-serif;
@@ -34,7 +34,7 @@ h2 {
 	font: italic normal 2.0em georgia, sans-serif;
 	letter-spacing: 1px; 
 	margin-bottom: 0; 
-	color: #7D775C;
+	color: #006600;
 }
 a:link { 
 	font-weight: bold; 
@@ -88,7 +88,7 @@ input[type="text"] {
 	}
 
 .page-wrapper { 	
-	padding: 0 800px 0 110px;  
+	padding: 0 700px 0 110px;  
 	margin: 0;
 	position: relative;
 	}
@@ -97,7 +97,7 @@ input[type="text"] {
 	color: #FF0000;
 	}
 .notice {
-	color: #7D775C
+	color: #006600
 }
 
 ul { 

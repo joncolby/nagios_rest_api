@@ -14,9 +14,11 @@ TODO AND NEW FEATURE LIST:
 - hostgroup actions
 	- DONE view hostgroups (authorized)
 	- DONE view hosts in hostgroup (authorized)
-- json mime type 
+	- HOST other put actions
+- DONE json content type 
 - append comment
 - user may lock/regenerate api-token
-- fix json output for hostgroup functions
-- increase timeout to gw
+- DONE fix json output for hostgroup functions
+- DONE increase timeout to gw
 - null exception 
+- consolidate routes? (reduce repetition)

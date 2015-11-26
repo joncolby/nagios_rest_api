@@ -40,7 +40,9 @@
 											#{@user.description}
 									%li
 										%h3
-											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token (if revoked, user cannot make api calls with token)
+											%input{:type => "checkbox", :name => "user[revoked]", :checked => !!@user.revoked } revoke token
+											%p
+												(user will not be able to call API)
 										%p
 											API Token: #{@user.token} 										
 									%li

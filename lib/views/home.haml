@@ -81,6 +81,17 @@
 								%td /hostgroups/<b>hostgroup</b>
 								%td list hosts in hostgroup
 								%td -
+							%tr
+								%td PUT
+								%td /hostgroups/<b>hostgroup</b>/downtime
+								%td set downtime for all hosts in hostgroup
+								%td service=(service name|all), minutes=(duration in minutes, default: 60)
+							%tr
+								%td PUT
+								%td /hostgroups/<b>hostgroup</b>/nodowntime
+								%td remove downtime for all hosts in hostgroup
+								%td service=(service name|all)
+							%tr
 						%h2
 							Notes
 						%ul

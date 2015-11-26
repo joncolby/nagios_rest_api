@@ -35,16 +35,22 @@ module NagiosRestApi
       host = NagiosRestApi::Host.new(name, { api_client: settings.client })
       h = host.info.to_h
       #return nil unless h[:last_check]
-      halt 400, j_({ :message => "Host #{name} does not exist." }) unless h[:last_check]
+      halt 400, json({ :message => "Host #{name} does not exist." }) unless h[:last_check]
       return host
     end
     
-    def authorized_host?(hostname)
+    def hostgroup(name)
+      host_group = NagiosRestApi::HostGroup.new(params[:hostgroup],{ api_client: settings.client })
+      halt 400, json({ :message => "Hostgroup #{name} does not exist." }) unless host_group.exists?
+      return host_group
+    end
+    #TODO pass host object
+    def authorized_host?(host)
       return false unless valid_api_request? 
       user_host_groups = hostgroups_to_a(current_user.host_groups)
       return true if user_host_groups.include? 'ALL' 
       return false if user_host_groups.include? 'NONE' 
-      return authorized_hosts.any? { |h| h.name.upcase == hostname.upcase }      
+      return authorized_hosts.any? { |h| h.name.upcase == host.name.upcase }      
     end
 
     def authorized_hosts
@@ -63,7 +69,7 @@ module NagiosRestApi
     end
     
     def authorized_hostgroup?(hostgroup)
-      authorized_hostgroups.collect { |hg| hg.name }.include? hostgroup
+      authorized_hostgroups.collect { |hg| hg.name.upcase }.include? hostgroup.name.upcase
     end
     
     def authorized_hostgroups
@@ -91,11 +97,7 @@ module NagiosRestApi
         return groups_list.join(',')
       end  
     end
-        
-    def j_(hash_data)
-      JSON.pretty_generate(hash_data)
-    end  
-    
+            
     def unauthorized
       halt 401, { :message => 'Unauthorized' }.to_json
     end
@@ -118,32 +120,32 @@ module NagiosRestApi
     def params_to_s(params)
       params.map{|k,v| "#{k}=#{v}"}.join(',')
     end
-    
-    def process_request(method,params={})
+            
+    def process_request(host,method,params={})
       logger.info "#{current_user.name} #{current_user.token} #{request.path_info} #{params_to_s(params)}"
+      errors = []
       params[:current_user] = current_user.name if current_user
-      host = host params[:hostname]
       if params[:service] 
-          # if 'service=all' was specified, loop over all hosts' services
+          # if 'service=all' was specified, loop over all host's services
           if params[:service].upcase == 'ALL'
               services =  host.services
               svcs = []
               services.each do |svc| 
                   response = svc.send(method,params)
-                  halt 400, j_({ :message => "could not set #{method} for service #{svc.name} on host #{host.name}"}) if response.code.to_i != 200
+                  halt 400, json({ :message => "could not set #{method} for service #{svc.name} on host #{host.name}"}) if response.code.to_i != 200
                   svcs << svc.name
               end  
-              j_({ :message => "#{method} applied for services #{svcs.join(',')} on host #{host.name}"})
+              json({ :message => "#{method} applied for services #{svcs.join(',')} on host #{host.name}"})
           elsif host.has_service? params[:service]
             svc = host.get_service(params[:service])
             response = svc.send(method,params)
-            j_ response.to_h
-            else
-            halt 400, j_({ :message => "No service #{params[:service]} found on host #{host.name}"})
-        end
+            json response.to_h
+          else
+            halt 400, json({ :message => "No service #{params[:service]} found on host #{host.name}"})
+          end
       else
         response = host.send(method, params)
-        j_ response.to_h
+        json response.to_h
       end
     end    
     

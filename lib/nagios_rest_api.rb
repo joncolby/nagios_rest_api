@@ -24,7 +24,7 @@ class RestApi < Sinatra::Application
   end
   
   helpers NagiosRestApi::Helpers
-#=begin  
+#=begin 
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
   end 
@@ -32,7 +32,7 @@ class RestApi < Sinatra::Application
   OmniAuth.config.on_failure = Proc.new { |env|
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
-#=end 
+#=end
   TEN_MB = 10490000
   Logger.class_eval { alias :write :<< }
   log_dir = File.expand_path("../../log",__FILE__)
@@ -120,80 +120,135 @@ class RestApi < Sinatra::Application
       halt 400, { :message => 'Missing host find pattern' }.to_json unless params[:hostname]  
       found_host_names = settings.client.hosts.find(params[:hostname]).collect { |h| h.name }
       authorized_host_names = authorized_hosts.collect { |h| h.name }
-      j_ :hosts => (found_host_names & authorized_host_names)
+      json :hosts => (found_host_names & authorized_host_names)
     end
 
     # show all hosts
     get '/hosts/?' do
       valid_api_request? or unauthorized
-      j_ :hosts => authorized_hosts.collect { |h| h.name }
+      json :hosts => authorized_hosts.collect { |h| h.name }
     end
 
     # status of a host
     get '/hosts/:hostname/?' do
       valid_api_request? or unauthorized
       host = host params[:hostname]
-      authorized_host? params[:hostname] or unauthorized 
+      authorized_host? host or unauthorized 
       h = host.to_h
       services = host.services.collect { |s| s.info.to_h }
-      j_ h.merge({ :services => services })     
+      json h.merge({ :services => services })     
     end
         
     # downtime
     put '/hosts/:hostname/downtime' do  
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60  
-      process_request :downtime, params
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized 
+      params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60
+      process_request host, :downtime, params
     end
     
     # nodowntime
     put '/hosts/:hostname/nodowntime' do
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      process_request :cancel_downtime, params      
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized      
+      process_request host, :cancel_downtime, params      
     end
     
     # acknowledge
     put '/hosts/:hostname/ack' do
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      process_request :acknowledge, params    
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized 
+      process_request host, :acknowledge, params    
     end
 
     # unacknowledge
     put '/hosts/:hostname/unack' do
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      process_request :remove_acknowledgement, params    
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized 
+      process_request host, :remove_acknowledgement, params    
     end
     
     # enable notifications
     put '/hosts/:hostname/disable' do
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      process_request :disable_notifications, params
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized 
+      process_request host, :disable_notifications, params
     end
     
     # disable notifications
     put '/hosts/:hostname/enable' do
       valid_api_request? or unauthorized
-      authorized_host? params[:hostname] or unauthorized 
-      process_request :enable_notifications, params
+      host = host params[:hostname]  
+      authorized_host? host or unauthorized 
+      process_request host, :enable_notifications, params
     end  
     
-    # show hostgroup(s), only those allowed though
+    # show hostgroups, only those allowed though
     get '/hostgroups/?' do
       valid_api_request? or unauthorized
-      j_ :hostgroups => authorized_hostgroups.collect {|h| h.name }
+      json :hostgroups => authorized_hostgroups.collect {|h| h.name }
     end
     
     # show all hosts in the hostgroup
     get '/hostgroups/:hostgroup/?' do
       valid_api_request? or unauthorized
-      authorized_hostgroup? params[:hostgroup] or unauthorized
-      host_group = NagiosRestApi::HostGroup.new(params[:hostgroup],{ api_client: settings.client })
-      j_ :hostgroups => host_group.members.collect { |h| h.name }
+      host_group = hostgroup(params[:hostgroup])
+      authorized_hostgroup? host_group or unauthorized
+      json :hostgroup => host_group.name, :hosts => host_group.members.collect { |h| h.name }
+    end
+    
+    put '/hostgroups/:hostgroup/downtime' do
+      valid_api_request? or unauthorized     
+      host_group = hostgroup(params[:hostgroup])
+      authorized_hostgroup? host_group or unauthorized 
+      params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60 
+      if params[:service]
+        if params[:service].upcase == 'ALL'
+          # use nagios shortcut to downtime all services in host group
+          response = host_group.downtime_services params
+        else
+          # downtime individual service on all hosts in host group
+          hosts = host_group.members
+          host_names = hosts.map {|h| h.name }.join(',')
+          hosts.each { |host| process_request host, :downtime, params }  
+          json  :message => "Downtime set for service #{params[:service]} on hosts in host group #{host_group.name}: #{host_names}"         
+        end
+      else
+      response = host_group.downtime_hosts params
+      json response.to_h
+      end 
+    end
+    
+    put '/hostgroups/:hostgroup/nodowntime' do
+      valid_api_request? or unauthorized
+      host_group = hostgroup(params[:hostgroup])
+      authorized_hostgroup? host_group or unauthorized 
+      hosts = host_group.members 
+      host_names = hosts.map {|h| h.name }.join(',')     
+      hosts.each { |host| process_request host, :cancel_downtime, params } 
+      type = params[:service] ? "services" : "hosts"
+      json  :message => "Downtime cancelled for all #{type} in host group #{host_group.name}: #{host_names}"   
+    end
+    
+    put '/hostgroups/:hostgroup/ack' do 
+      halt 501, "Not implemented"  
+    end
+    
+    put '/hostgroups/:hostgroup/unack' do   
+      halt 501, "Not implemented"  
+    end
+    
+    put '/hostgroups/:hostgroup/enable' do
+      halt 501, "Not implemented"   
+    end
+    
+    put '/hostgroups/:hostgroup/disable' do
+      halt 501, "Not implemented"    
     end
     
     post '/slack' do
@@ -287,7 +342,7 @@ class RestApi < Sinatra::Application
       name = @user.name if @user
       @user.destroy or redirect '/error'
       logger.info "user #{@user.name} was deleted"
-      flash[:error] = "User #{name} has been deleted"
+      flash[:notice] = "User #{name} has been deleted"
       redirect '/admin'
     end
     
@@ -306,7 +361,7 @@ class RestApi < Sinatra::Application
     post '/admin/create', :auth => settings.admin_groups do
       @user = NagiosRestApi::User.new      
       @user.name = params[:user][:name]
-      @user.uid = @user.name.gsub(/\s+/, '.').downcase
+      @user.uid = @user.name.strip.gsub(/\s+/, '.').downcase
       @user.description = params[:user][:description]
       @user.revoked = params[:user][:revoked] == "on" ? true : false
       @user.host_groups = parse_hostgroups(params[:user][:host_groups])
@@ -328,8 +383,8 @@ class RestApi < Sinatra::Application
     put '/admin/:id', :auth => settings.admin_groups do
       u = NagiosRestApi::User.get params[:id]      
       u.update({ 
-        :name => params[:user][:name],
-        :uid => params[:user][:name].gsub(/\s+/, '.').downcase,
+        :name => params[:user][:name].strip,
+        :uid => params[:user][:name].strip.gsub(/\s+/, '.').downcase,
         :host_groups => parse_hostgroups(params[:user][:host_groups]),
         :description => params[:user][:description],
         :revoked => params[:user][:revoked] == "on" ? true : false
