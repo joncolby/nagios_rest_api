@@ -24,6 +24,7 @@ class RestApi < Sinatra::Application
   end
   
   helpers NagiosRestApi::Helpers
+  
 #=begin 
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
@@ -33,6 +34,7 @@ class RestApi < Sinatra::Application
     OmniAuth::FailureEndpoint.new(env).redirect_to_failure
   }
 #=end
+  
   TEN_MB = 10490000
   Logger.class_eval { alias :write :<< }
   log_dir = File.expand_path("../../log",__FILE__)
