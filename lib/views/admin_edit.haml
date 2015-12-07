@@ -44,7 +44,16 @@
 											%p
 												(user will not be able to call API)
 										%p
-											API Token: #{@user.token} 										
+											API Token: #{@user.token} 												
+									%li
+										%h3
+											%input{:type => "checkbox", :name => "user[email_notification_on]", :checked => !!@user.email_notification_on } email notification?
+											%p
+												(email sent for every api action)	
+									%li
+										%h3
+											Notification Email Address	
+										%input{:type => "text", :name => "user[email_notification_address]", :value => "#{@user.email_notification_address}" }								
 									%li
 										%br
 											%input{:type => "submit", :value => "update user"}|

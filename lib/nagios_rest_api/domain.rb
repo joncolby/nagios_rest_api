@@ -15,6 +15,8 @@ module NagiosRestApi
     property :token, String, :required => true, :length => 40, :unique => true, :default => proc { generate_token }
     property :description, String, :required => false, :length => 1275
     property :host_groups, String, :required => true, :length => 1275, :default  => 'ALL'
+    property :email_notification_address, String, :required => false  # TODO: email address validation
+    property :email_notification_on, Boolean, :default  => false
     property :revoked, Boolean, :default  => false
     property :locked, Boolean, :default => false
     

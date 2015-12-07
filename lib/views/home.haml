@@ -25,7 +25,7 @@
 								%th method
 								%th command
 								%th description
-								%th parameters (* indicates required)
+								%th parameters
 							%tr
 								%td GET
 								%td /hosts
@@ -45,32 +45,32 @@
 								%td PUT
 								%td /hosts/<b>hostname</b>/downtime
 								%td set downtime
-								%td service=(service name|all), minutes=(duration in minutes, default: 60)
+								%td service=(service-name|all), minutes=(duration in minutes, default: 60),<br>start_time=(unix-timestamp,default: now), comment="any text"										
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/nodowntime
 								%td remove downtime
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/ack
 								%td set acknowledgement
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/unack
 								%td unset acknowledgement
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/enable
 								%td enable notifications
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 								%td PUT
 								%td /hosts/<b>hostname</b>/disable
 								%td disable notifications
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 								%td GET
 								%td /hostgroups
@@ -85,12 +85,12 @@
 								%td PUT
 								%td /hostgroups/<b>hostgroup</b>/downtime
 								%td set downtime for all hosts in hostgroup
-								%td service=(service name|all), minutes=(duration in minutes, default: 60)
+								%td service=(service-name|all), minutes=(duration in minutes, default: 60),<br>start_time=(unix-timestamp,default: now), comment="any text"							
 							%tr
 								%td PUT
 								%td /hostgroups/<b>hostgroup</b>/nodowntime
 								%td remove downtime for all hosts in hostgroup
-								%td service=(service name|all)
+								%td service=(service-name|all)
 							%tr
 						%h2
 							Notes
@@ -98,7 +98,16 @@
 							%li - For PUT actions, if no 'service' parameter is supplied, action will be applied to HOST
 							%li - service parameter can take the value 'all', which will cause the operation to be applied to all services on the host
 							%li - API calls can be made using an api-token. login to retrieve your api-token.
-							%li - If there is a space in the service name, you can use '+'.  Example:  service=Swap+Usage</
+							%li - If there is a space in the service name, you can use '+'.  Example:  service=Swap+Usage
+							
+							%p
+								%h3
+									Converting date to unix-timestamp
+								From the command line prompt, use the <b>date</b> utility to view the date:
+							<pre>
+							date +%s -d 'Fri Dec  5 13:18:21 CET 2015'
+							1449317901
+							</pre>
 							
 						%h2 
 							Examples

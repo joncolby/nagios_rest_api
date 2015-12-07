@@ -32,3 +32,14 @@
 								#{current_user.token}
 							%h3
 								Your API Token is #{current_user.revoked ? 'revoked' : 'valid' }!
+						%li
+							%h3 
+								Email Notifications #{current_user.email_notification_on ? 'on' : 'off' }
+						%li
+							%h3
+								Email Notification Address
+							- if !current_user.email_notification_address.empty?
+								#{current_user.email_notification_address}
+							- else
+								<b>EMPTY</b>
+								

@@ -31,5 +31,8 @@
 							%li
 								Nagios Host Groups: <b>#{user.host_groups}</b>	
 							%li
+								- if user.email_notification_address
+									Email Notification Address: <b>#{user.email_notification_address}</b> (notifications #{user.email_notification_on ? 'on' : 'off' })	
+							%li
 								%a{ :href => "/admin/#{user.id}/edit"}Edit User|
 								%a{ :href => "/admin/#{user.id}/delete"}Delete User							

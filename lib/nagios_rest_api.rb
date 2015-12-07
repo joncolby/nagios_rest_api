@@ -8,6 +8,7 @@ require 'tilt/haml'
 require 'rack-flash'
 require 'omniauth_crowd'
 require 'omniauth'
+require 'nagios_rest_api/email_client'
 require 'nagios_rest_api/version'
 require 'nagios_rest_api/domain'
 require 'nagios_rest_api/client'
@@ -18,13 +19,13 @@ require 'nagios_rest_api/services'
 require 'nagios_rest_api/helpers'
 
 class RestApi < Sinatra::Application
+  include NagiosRestApi::EmailClient
 
   helpers do
       include Rack::Utils
   end
   
   helpers NagiosRestApi::Helpers
-  
 #=begin 
   use OmniAuth::Builder do
     provider :crowd, :crowd_server_url => "https://crowd.unbelievable-machine.net", :application_name => "nagios-rest-api", :application_password => "9cOPGKmtP1cNX9/wbAZM0FrlwaFTVQ23KPmk3TPMC0ET66TcNAS9C05mj8oN5BK7xxU="
@@ -209,10 +210,12 @@ class RestApi < Sinatra::Application
       host_group = hostgroup(params[:hostgroup])
       authorized_hostgroup? host_group or unauthorized 
       params[:minutes] = params[:minutes] ? params[:minutes].to_i : 60 
+      params[:current_user] = current_user.name if current_user
       if params[:service]
         if params[:service].upcase == 'ALL'
           # use nagios shortcut to downtime all services in host group
           response = host_group.downtime_services params
+          json response.to_h
         else
           # downtime individual service on all hosts in host group
           hosts = host_group.members
@@ -366,6 +369,8 @@ class RestApi < Sinatra::Application
       @user.uid = @user.name.strip.gsub(/\s+/, '.').downcase
       @user.description = params[:user][:description]
       @user.revoked = params[:user][:revoked] == "on" ? true : false
+      @user.email_notification_address = params[:user][:email_notification_address].strip.gsub(/\s+/, '').downcase
+      @user.email_notification_on = params[:user][:email_notification_on] == "on" ? true : false
       @user.host_groups = parse_hostgroups(params[:user][:host_groups])
       if @user.save
               redirect "/admin/#{@user.id}"
@@ -388,6 +393,8 @@ class RestApi < Sinatra::Application
         :name => params[:user][:name].strip,
         :uid => params[:user][:name].strip.gsub(/\s+/, '.').downcase,
         :host_groups => parse_hostgroups(params[:user][:host_groups]),
+        :email_notification_address => params[:user][:email_notification_address].strip.gsub(/\s+/, '').downcase,
+        :email_notification_on => params[:user][:email_notification_on] == "on" ? true : false,
         :description => params[:user][:description],
         :revoked => params[:user][:revoked] == "on" ? true : false
         })
@@ -397,6 +404,25 @@ class RestApi < Sinatra::Application
         flash[:error] = u.errors.map { |e| "#{e.join(', ')}" }.join("; ")
         redirect "/admin/#{params[:id]}/edit"
       end    
+  end
+  
+  after %r{/(hosts|hostgroups)/(.*)/(ack|unack|downtime|nodowntime|enable|disable)} do
+    send_email(current_user.email_notification_address) do  
+      <<-BODY
+      This is an automatically generated email from the Nagios Rest API.
+      
+      User #{current_user.name} has made a request to API. 
+      
+      Request url:
+      #{request.fullpath} 
+      Parameters:
+      #{params}      
+      API response:
+      #{response.body}"
+      
+      Note: You have received this email because email notifications are turned on for the user associated with your API Token
+      BODY
+    end if (current_user.email_notification_on)
   end
     
   

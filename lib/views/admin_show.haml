@@ -32,6 +32,16 @@
 									Token is #{@user.revoked ? 'revoked' : 'valid' }
 								%p
 									API Token: #{@user.token} 
+							%li
+								%h3
+									Email Notification 
+								%div
+									#{@user.email_notification_on ? 'on' : 'off' }
+							%li
+								%h3
+									Email Notification Address 
+								%div
+									#{@user.email_notification_address}
 							%li	
 								%br		
 									%a{ :href => "/admin/#{@user.id}/edit"}

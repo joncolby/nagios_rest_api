@@ -1,3 +1,5 @@
+require 'nagios_rest_api/utils'
+
 module NagiosRestApi
   class HostGroups
     attr_reader :api_client, :hostgroups
@@ -23,6 +25,7 @@ module NagiosRestApi
  end
  
   class HostGroup
+    include NagiosRestApi::Utils
     attr_reader :name, :api_client
     def initialize(name, args = {})
       @api_client = args[:api_client]
@@ -76,21 +79,25 @@ module NagiosRestApi
     
     def set_downtime(cmd_typ, opts = {})
       duration_minutes = opts[:minutes] || 60
-      comment = opts[:comment] || 'downtime set by '
       user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
-      comment << user
-      t = Time.new
-      localtime = t.localtime
-      duration = localtime + duration_minutes * 60
-      start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
-      end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
+      comment = 'downtime set by ' + user
+      comment << ": #{opts[:comment]}" if opts[:comment]
       
-      if @api_client.date_format == 'us'
-        start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
-        end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      if opts[:start_time]
+        unix_timestamp = Time.at(opts[:start_time].to_i)
+        start_time = format_date(unix_timestamp,@api_client.date_format)
+        duration = unix_timestamp + duration_minutes * 60
+        end_time = format_date(duration,@api_client.date_format)
+      else
+        t = Time.new
+        localtime = t.localtime
+        duration = localtime + duration_minutes * 60
+        start_time = format_date(localtime,@api_client.date_format)
+        end_time = format_date(duration,@api_client.date_format)
       end
+
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { hostgroup: @name, cmd_mod: '2', cmd_typ: cmd_typ, com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', hours: '2', minutes: '0', trigger: '0', btnSubmit: 'Commit' })
-      return OpenStruct.new({message: "#{opts[:type]} in host group #{@name} have been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "#{opts[:type]} in host group #{@name} have been downtimed for #{duration_minutes} minutes starting at #{start_time}", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for #{opts[:type]} in host group #{@name}", code: response.code }) 
     end          
   end

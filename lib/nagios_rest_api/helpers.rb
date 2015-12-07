@@ -1,7 +1,7 @@
 require 'json'
+
 module NagiosRestApi
-  module Helpers
-    
+  module Helpers    
     def self.load_config
       config ||= {}
       config_file = "nagios_rest_api.yaml"      

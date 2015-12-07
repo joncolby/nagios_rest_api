@@ -21,12 +21,11 @@
 							%li
 								%h3
 									User Name	
-								%input{:type => "text", :name => "user[name]", :value => "#{@user.name if @user}" }
+								%input{:type => "text", :name => "user[name]" }
 							%li																													
 								%h3 
 									Nagios Host Groups
 								%textarea{:name => "user[host_groups]", :type => "textarea", :rows => "4", :cols => "100" }
-									#{@user.host_groups if @user}
 								%p											
 									Comma-separated list of allowed Nagios Host Groups.
 									%br Example:  WEB1, DATABASES, BACKEND_HOSTS
@@ -38,6 +37,15 @@
 							%li
 								%h3									 
 									%input{:type => "checkbox", :name => "user[revoked]", :checked => false } revoke token (if revoked, user cannot make api calls with token)
+							%li
+								%h3
+									%input{:type => "checkbox", :name => "user[email_notification_on]", :checked => false } email notification?
+									%p
+										(email sent for every api action)	
+							%li
+								%h3
+									Notification Email Address	
+								%input{:type => "text", :name => "user[email_notification_address]" }	
 							%li
 								%br
 									%input{:type => "submit", :value => "create user"}

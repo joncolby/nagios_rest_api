@@ -1,8 +1,10 @@
 require 'cgi'
 require 'ostruct'
+require 'nagios_rest_api/utils'
 
 module NagiosRestApi
   class Service    
+    include NagiosRestApi::Utils
     attr_reader :api_client, :host  
     def initialize(name, host, args = {})
       @host = host
@@ -58,32 +60,35 @@ return OpenStruct.new({message: "Problem encountered removing downtime for servi
 
     def downtime(opts={})
       duration_minutes = opts[:minutes] || 60
-      comment = opts[:comment] || 'downtime set by '
       user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
-      comment << user
-      t = Time.new
-      localtime = t.localtime
-      duration = localtime + duration_minutes * 60
-      
-      start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
-      end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
-      
-      if @api_client.date_format == 'us'
-        start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
-        end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      comment = 'downtime set by ' + user
+      comment << ": #{opts[:comment]}" if opts[:comment]
+     
+      if opts[:start_time]
+        unix_timestamp = Time.at(opts[:start_time].to_i)
+        start_time = format_date(unix_timestamp,@api_client.date_format)
+        duration = unix_timestamp + duration_minutes * 60
+        end_time = format_date(duration,@api_client.date_format)
+      else
+        t = Time.new
+        localtime = t.localtime
+        duration = localtime + duration_minutes * 60
+        start_time = format_date(localtime,@api_client.date_format)
+        end_time = format_date(duration,@api_client.date_format)
       end
-
+      
       service = CGI::unescape @name      
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, hours: '2', minutes: '0', trigger: '0', cmd_typ: '56', cmd_mod: '2', service: service, com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', btnSubmit: 'Commit' })
       #puts response.body  
-      return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Service \'#{service}\' on #{@host} has been downtimed for #{duration_minutes} minutes starting at #{start_time}", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for service #{service} on #{@host}", code: response.code }) 
     end   
     
     def acknowledge(opts={})
-      comment = opts[:comment] || 'acknowledgement set by '
       user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
-      comment << user
+      comment = 'acknowledgement set by ' + user
+      comment << ": #{opts[:comment]}" if opts[:comment]
+        
       sticky = opts[:sticky] || true 
       service = CGI::unescape @name
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @host.name, cmd_typ: '34', cmd_mod: '2', service: service, sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })

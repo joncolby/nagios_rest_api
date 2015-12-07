@@ -1,5 +1,6 @@
 require 'cgi'
 require 'ostruct'
+require 'nagios_rest_api/utils'
 
 module NagiosRestApi
   class Hosts
@@ -42,6 +43,7 @@ module NagiosRestApi
    end  
   
   class Host
+    include NagiosRestApi::Utils
     attr_reader :name, :api_client
     def initialize(name, args = {})
       @api_client = args[:api_client]
@@ -125,9 +127,9 @@ module NagiosRestApi
 
     # post to nagios   
     def acknowledge(opts={})
-      comment = opts[:comment] || 'acknowledgement set by '
       user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
-      comment << user
+      comment = 'acknowledgement set by ' + user
+      comment << ": #{opts[:comment]}" if opts[:comment]
       sticky = opts[:sticky] || true 
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, com_author: 'nagios rest api', cmd_typ: '33', cmd_mod: '2', sticky_ack: sticky, com_data: comment, btnSubmit: 'Commit' })
       return OpenStruct.new({message: "Host #{@name} has been acknowledged", code: response.code }) if response.is_a? Net::HTTPSuccess
@@ -142,24 +144,27 @@ module NagiosRestApi
     
 
     def downtime(opts = {})
-      duration_minutes = opts[:minutes] || 60
-      comment = opts[:comment] || 'downtime set by '
+      duration_minutes = opts[:minutes] || 60      
       user = opts[:current_user] ? "#{opts[:current_user]} via nagios api" : 'nagios api'
-      comment << user
-      t = Time.new
-      localtime = t.localtime
-      duration = localtime + duration_minutes * 60
-      start_time = localtime.strftime "%d-%m-%Y %H:%M:%S"
-      end_time = duration.strftime "%d-%m-%Y %H:%M:%S"
+      comment = 'downtime set by ' + user
+      comment << ": #{opts[:comment]}" if opts[:comment]
       
-      if @api_client.date_format == 'us'
-        start_time = localtime.strftime "%m-%d-%Y %H:%M:%S"
-        end_time = duration.strftime "%m-%d-%Y %H:%M:%S"
+      if opts[:start_time]
+        unix_timestamp = Time.at(opts[:start_time].to_i)
+        start_time = format_date(unix_timestamp,@api_client.date_format)
+        duration = unix_timestamp + duration_minutes * 60
+        end_time = format_date(duration,@api_client.date_format)
+      else
+        t = Time.new
+        localtime = t.localtime
+        duration = localtime + duration_minutes * 60
+        start_time = format_date(localtime,@api_client.date_format)
+        end_time = format_date(duration,@api_client.date_format)
       end
 
       response = api_client.api.post('/nagios/cgi-bin/cmd.cgi', { host: @name, childoptions: '0', cmd_mod: '2', cmd_typ: '55', com_data: comment, start_time: start_time, end_time: end_time, fixed: '1', hours: '2', minutes: '0', trigger: '0', btnSubmit: 'Commit' })
       #puts response.body
-      return OpenStruct.new({message: "Host #{@name} has been downtimed for #{duration_minutes} minutes", code: response.code }) if response.is_a? Net::HTTPSuccess
+      return OpenStruct.new({message: "Host #{@name} has been downtimed for #{duration_minutes} minutes starting at #{start_time}", code: response.code }) if response.is_a? Net::HTTPSuccess
       return OpenStruct.new({message: "Problem setting downtime for host #{@name}", code: response.code }) 
     end 
     
