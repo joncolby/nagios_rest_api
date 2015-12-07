@@ -7,9 +7,9 @@ module NagiosRestApi
 
   def send_email(to_address)
       return if to_address.nil? or to_address.blank?
-      #Mail.defaults do
-      #  delivery_method :smtp, { address: 'smtp.gmail.com', port: 587,user_name: 'xxxx', password: 'xxxx' }
-      #end
+      Mail.defaults do
+        delivery_method :sendmail
+      end
       
       mail = Mail.new do
         from 'noreply-nagiosrestapi@unbelievable-machine.com'
