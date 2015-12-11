@@ -38,8 +38,8 @@
 						%li
 							%h3
 								Email Notification Address
-							- if !current_user.email_notification_address.empty?
+							- if current_user.email_notification_address && !current_user.email_notification_address.empty?
 								#{current_user.email_notification_address}
 							- else
-								<b>EMPTY</b>
+								<b>no email address configured</b>
 								
