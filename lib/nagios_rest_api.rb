@@ -411,7 +411,7 @@ class RestApi < Sinatra::Application
       <<-BODY
       This is an automatically generated email from the Nagios Rest API.
       
-      User #{current_user.name} has made a request to API. 
+      User #{current_user.name} has made the following request to the Nagios Rest API: 
       
       Request url:
       #{request.fullpath} 
